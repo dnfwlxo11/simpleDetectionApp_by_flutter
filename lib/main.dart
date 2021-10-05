@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_detection_app/mainPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Detect!',
       theme: ThemeData(
-        primarySwatch: Colors.amber,
+        primarySwatch: Colors.blueGrey,
       ),
       home: const MyHomePage(title: 'Simple Detection App'),
     );
@@ -33,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String text = 'Hi';
   bool isOk = true;
+  var idx = 0;
 
   void _incrementCounter() {
     setState(() {
@@ -45,33 +47,37 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: ListView(
-          scrollDirection: Axis.vertical,
-          children: <Widget>[
-            ListTile(
-              title: Text('home'),
-              onTap: () {}
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          title: Text(widget.title),
+        ),
+        body: mainPage(),
+
+        bottomNavigationBar: BottomNavigationBar(
+          onTap: (index) {
+            setState(() {
+              idx = index;
+            });
+          },
+          currentIndex: idx,
+          items: <BottomNavigationBarItem> [
+            BottomNavigationBarItem(
+              title: Text('홈'),
+              icon: Icon(Icons.home),
             ),
-            ListTile(
-                title: Text('home2'),
-                onTap: () {}
-            ),
-            ListTile(
-                title: Text('home3'),
-                onTap: () {}
+            BottomNavigationBarItem(
+              title: Text('갤러리'),
+              icon: Icon(Icons.assignment),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+
+
+        floatingActionButton: FloatingActionButton(
+          onPressed: _incrementCounter,
+          tooltip: 'Increment',
+          child: const Icon(Icons.add),
+        ),
     );
   }
 }
