@@ -12,7 +12,10 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Text('홈페이지 입니다.'),
+        child: FlutterLogo(
+          size: 300,
+          textColor: Colors.blue,
+        ),
       )
     );
   }

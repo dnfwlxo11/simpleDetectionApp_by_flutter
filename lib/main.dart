@@ -34,56 +34,60 @@ class _HomePageState extends State<HomePage> {
   // path provider to get the path of files
   // image picker wish is a cool plugin that allow us to pick image from difference source
   File? _image;
-  final imagePicker = ImagePicker();
-  int bottomTabIndex = 0;
+  int _bottomTabIndex = 0;
+  PageController? _pageController;
 
-  // 카메라에서 이미지 가져오기
-  Future getImage() async {
-    final image = await imagePicker.getImage(source: ImageSource.camera); // 해당 라인이 카메라에서 이미지를 가져올 수 있게 해줌
-    setState(() {
-      _image = File(image!.path);
-    });
+  @override
+  void initState() {
+    // TODO: implement initState
+    _pageController = PageController(initialPage: _bottomTabIndex);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pageController!.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     Widget child;
-    final List<Widget> _children = [Home(), Camera(), Gallery()];
-
-    switch (bottomTabIndex) {
-      case 0:
-        child = Text('test1');
-        break;
-      case 1:
-        child = Text('test2');
-        break;
-      case 2:
-        child = Text('test3');
-        break;
-    }
 
     return Scaffold(
       appBar: AppBar(
         title: Text('디텍팅 앱'),
         backgroundColor: Colors.lightBlue,
       ),
-      body: _children[bottomTabIndex],
+      body: new PageView(
+        controller: _pageController,
+        onPageChanged: (newPage) {
+          setState(() {
+            this._bottomTabIndex = newPage;
+          });
+        },
+        children: <Widget>[
+          new Center(
+            child: Home(),
+          ),
+          new Center(
+            child: Camera(image: _image),
+          ),
+          new Center(
+            child: Gallery(),
+          ),
+        ],
+      ),
       bottomNavigationBar: new BottomNavigationBar(
-        currentIndex: bottomTabIndex,
-        onTap: (int index) { setState(() => this.bottomTabIndex = index); },
+        currentIndex: _bottomTabIndex,
+        onTap: (int index) {
+          setState(() => this._bottomTabIndex = index);
+          this._pageController?.animateToPage(index,duration: const Duration(milliseconds: 1000),curve: Curves.easeInOut);
+        },
         items: <BottomNavigationBarItem>[
-          new BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            title: Text('홈'),
-          ),
-          new BottomNavigationBarItem(
-            icon: Icon(Icons.camera),
-            title: Text('카메라'),
-          ),
-          new BottomNavigationBarItem(
-            icon: Icon(Icons.image),
-            title: Text('갤러리'),
-          )
+          new BottomNavigationBarItem(icon: Icon(Icons.home), title: Text('홈'),),
+          new BottomNavigationBarItem(icon: Icon(Icons.camera), title: Text('카메라'),),
+          new BottomNavigationBarItem(icon: Icon(Icons.image), title: Text('갤러리'),)
       ],)
     );
   }

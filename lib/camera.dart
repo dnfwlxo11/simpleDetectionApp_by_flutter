@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Camera extends StatefulWidget {
-  const Camera({Key? key}) : super(key: key);
+  const Camera({Key? key, File? image}) : super(key: key);
 
   @override
   _CameraState createState() => _CameraState();
@@ -28,7 +28,7 @@ class _CameraState extends State<Camera> {
   @override
   void initState() {
     // TODO: implement initState
-    getImage();
+    // getImage();
     super.initState();
   }
 
@@ -40,10 +40,10 @@ class _CameraState extends State<Camera> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _image == null ? Text("사진을 먼저 촬영해야합니다.") : Image.file(_image!),
-            _image == null ? Text('') : RaisedButton(
+            RaisedButton(
               color: Colors.lightBlue,
               onPressed: getImage,
-              child: Text('다시 촬영', style: TextStyle(color: Colors.white)),
+              child: _image == null ? Text('촬영', style: TextStyle(color: Colors.white)) : Text('다시 촬영', style: TextStyle(color: Colors.white)),
             )
           ],
         )
