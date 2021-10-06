@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:simple_detection_app/mainPage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:simple_detection_app/home.dart';
+import 'package:simple_detection_app/gallery.dart';
+import 'package:simple_detection_app/camera.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,72 +17,75 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Detect!',
-      theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
-      ),
-      home: const MyHomePage(title: 'Simple Detection App'),
+
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  String text = 'Hi';
-  bool isOk = true;
-  var idx = 0;
+class _HomePageState extends State<HomePage> {
+  // path provider to get the path of files
+  // image picker wish is a cool plugin that allow us to pick image from difference source
+  File? _image;
+  final imagePicker = ImagePicker();
+  int bottomTabIndex = 0;
 
-  void _incrementCounter() {
+  // 카메라에서 이미지 가져오기
+  Future getImage() async {
+    final image = await imagePicker.getImage(source: ImageSource.camera); // 해당 라인이 카메라에서 이미지를 가져올 수 있게 해줌
     setState(() {
-      _counter++;
-      isOk ? text = 'Hi' : text = 'Hello';
-      isOk = !isOk;
+      _image = File(image!.path);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget child;
+    final List<Widget> _children = [Home(), Camera(), Gallery()];
+
+    switch (bottomTabIndex) {
+      case 0:
+        child = Text('test1');
+        break;
+      case 1:
+        child = Text('test2');
+        break;
+      case 2:
+        child = Text('test3');
+        break;
+    }
+
     return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          title: Text(widget.title),
-        ),
-        body: mainPage(),
-
-        bottomNavigationBar: BottomNavigationBar(
-          onTap: (index) {
-            setState(() {
-              idx = index;
-            });
-          },
-          currentIndex: idx,
-          items: <BottomNavigationBarItem> [
-            BottomNavigationBarItem(
-              title: Text('홈'),
-              icon: Icon(Icons.home),
-            ),
-            BottomNavigationBarItem(
-              title: Text('갤러리'),
-              icon: Icon(Icons.assignment),
-            ),
-          ],
-        ),
-
-
-        floatingActionButton: FloatingActionButton(
-          onPressed: _incrementCounter,
-          tooltip: 'Increment',
-          child: const Icon(Icons.add),
-        ),
+      appBar: AppBar(
+        title: Text('디텍팅 앱'),
+        backgroundColor: Colors.lightBlue,
+      ),
+      body: _children[bottomTabIndex],
+      bottomNavigationBar: new BottomNavigationBar(
+        currentIndex: bottomTabIndex,
+        onTap: (int index) { setState(() => this.bottomTabIndex = index); },
+        items: <BottomNavigationBarItem>[
+          new BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            title: Text('홈'),
+          ),
+          new BottomNavigationBarItem(
+            icon: Icon(Icons.camera),
+            title: Text('카메라'),
+          ),
+          new BottomNavigationBarItem(
+            icon: Icon(Icons.image),
+            title: Text('갤러리'),
+          )
+      ],)
     );
   }
 }
+
