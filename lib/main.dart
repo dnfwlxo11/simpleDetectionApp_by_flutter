@@ -5,6 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:simple_detection_app/home.dart';
 import 'package:simple_detection_app/gallery.dart';
 import 'package:simple_detection_app/camera.dart';
+// import 'package:permission_handler/permission_handler.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -31,8 +33,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // path provider to get the path of files
-  // image picker wish is a cool plugin that allow us to pick image from difference source
   File? _image;
   int _bottomTabIndex = 0;
   PageController? _pageController;
@@ -71,7 +71,7 @@ class _HomePageState extends State<HomePage> {
             child: Home(),
           ),
           new Center(
-            child: Camera(image: _image),
+            child: Camera(),
           ),
           new Center(
             child: Gallery(),
@@ -79,15 +79,16 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       bottomNavigationBar: new BottomNavigationBar(
+        // type: BottomNavigationBarType.fixed, // 메뉴가 3개 초과할때만 활성화
         currentIndex: _bottomTabIndex,
         onTap: (int index) {
           setState(() => this._bottomTabIndex = index);
-          this._pageController?.animateToPage(index,duration: const Duration(milliseconds: 1000),curve: Curves.easeInOut);
+          this._pageController?.animateToPage(index,duration: const Duration(milliseconds: 500),curve: Curves.easeInOut);
         },
         items: <BottomNavigationBarItem>[
           new BottomNavigationBarItem(icon: Icon(Icons.home), title: Text('홈'),),
           new BottomNavigationBarItem(icon: Icon(Icons.camera), title: Text('카메라'),),
-          new BottomNavigationBarItem(icon: Icon(Icons.image), title: Text('갤러리'),)
+          new BottomNavigationBarItem(icon: Icon(Icons.image), title: Text('갤러리'),),
       ],)
     );
   }
