@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:http/http.dart' as http;
 
 class CameraDetail extends StatefulWidget {
   final String imagePath;
@@ -13,7 +15,20 @@ class CameraDetail extends StatefulWidget {
 }
 
 class _CameraDetailState extends State<CameraDetail> {
+  String url = 'http://192.168.0.106:3000/flutter';
   bool isComplete = true;
+  bool isImage = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
 
   void showToast(String message) {
     Fluttertoast.showToast(
@@ -22,6 +37,34 @@ class _CameraDetailState extends State<CameraDetail> {
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM
     );
+  }
+
+  void detectAction() async {
+    showToast('디텍팅 시작');
+    setState(() => isComplete = false);
+
+    var request = http.MultipartRequest('POST', Uri.parse(url));
+
+    // 헤더 세팅
+    // request.headers["Content-Type"] = "multipart/json";
+
+    // 보낼 것 세팅
+    request.files.add(await http.MultipartFile.fromPath(
+      'image',
+      widget.imagePath
+    ));
+    var response = await request.send();
+
+    print(response.contentLength);
+
+    setState(() => isComplete = true);
+    setState(() => isImage = true);
+  }
+
+  void saveAction() async {
+    showToast('이미지 저장');
+
+    setState(() => isImage = false);
   }
 
   @override
@@ -34,22 +77,15 @@ class _CameraDetailState extends State<CameraDetail> {
           children: [
             Image.file(File(widget.imagePath)),
             isComplete ?
-            Positioned(
-              bottom: 40,
-              right: 10,
-              child: RaisedButton(
-                color: Colors.lightBlue,
-                onPressed: () {
-                  showToast('디텍팅 시작');
-                  isComplete = false;
-                  var timer = Timer(Duration(seconds: 5), () => {
-                    isComplete = true,
-                  });
-                  timer.cancel();
-                },
-                child: isComplete ? Text('디텍팅하기') : Text('저장하기'),
-              ),
-            ) : CircularProgressIndicator()
+              Positioned(
+                bottom: 40,
+                right: 10,
+                child: RaisedButton(
+                  color: Colors.lightBlue,
+                  onPressed: isImage ? saveAction : detectAction,
+                  child: isImage ? Text('저장하기') : Text('디텍팅하기'),
+                ),
+              ) : CircularProgressIndicator()
           ],
         )
     );

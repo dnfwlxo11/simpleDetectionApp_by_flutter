@@ -40,6 +40,8 @@ dependencies:
   path_provider: ^2.0.5
   path: ^1.8.0
   image_picker: ^0.8.4+2
+  fluttertoast: ^8.0.8
+#  permission_handler: ^8.0.0 # complie version 30
 
 dev_dependencies:
   flutter_test:
