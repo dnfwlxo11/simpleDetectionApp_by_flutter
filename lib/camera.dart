@@ -4,7 +4,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:simple_detection_app/cameraDetail.dart';
 import 'dart:async';
 
@@ -17,6 +16,7 @@ class Camera extends StatefulWidget {
 }
 
 class _CameraState extends State<Camera> {
+  var _saveImage;
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
 
@@ -82,17 +82,18 @@ class _CameraState extends State<Camera> {
                       // 카메라 초기화가 완료됐는지 확인합니다.
                       await _initializeControllerFuture;
 
-                      print((await getExternalStorageDirectory())!.path);
                       // path 패키지를 사용하여 이미지가 저장될 경로를 지정합니다.
                       final path = join(
                         // 본 예제에서는 임시 디렉토리에 이미지를 저장합니다. `path_provider`
                         // 플러그인을 사용하여 임시 디렉토리를 찾으세요.
-                        (await getExternalStorageDirectory())!.path,
-                        '${DateTime.now()}.png',
+                        (await getApplicationDocumentsDirectory()).path,
+                        'detectBefore.png',
                       );
 
                       XFile picture = await _controller!.takePicture();
                       picture.saveTo(path);
+
+                      File newImage = await File(path).copy('${(await getApplicationDocumentsDirectory()).path}/detectAfter.png');
 
                       // 사진 촬영을 시도하고 저장되는 경로를 로그로 남깁니다.
                       // await _controller!.takePicture(path);

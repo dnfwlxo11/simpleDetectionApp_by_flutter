@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 class Gallery extends StatefulWidget {
   const Gallery({Key? key}) : super(key: key);
 
@@ -14,6 +15,10 @@ class _GalleryState extends State<Gallery> {
       {'image': 'assets/img4.png', 'name': '지리산'},
   ];
 
+  void getImages() async {
+    print((await getApplicationDocumentsDirectory()).path);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,6 +33,11 @@ class _GalleryState extends State<Gallery> {
                   children: <Widget>[
                     Image.asset('${sampleImg[index]['image']}'),
                     Text('${sampleImg[index]['name']}'),
+                    RaisedButton(
+                      color: Colors.lightBlue,
+                      onPressed: getImages,
+                      child: Text('자세히보기'),
+                    ),
                   ],
                 ),
               )

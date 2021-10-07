@@ -1,9 +1,7 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:http_parser/http_parser.dart';
 import 'package:http/http.dart' as http;
 
 class CameraDetail extends StatefulWidget {

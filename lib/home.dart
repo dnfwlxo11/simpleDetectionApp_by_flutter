@@ -16,7 +16,7 @@ class _HomeState extends State<Home> {
           size: 300,
           textColor: Colors.blue,
         ),
-      )
+      ),
     );
   }
 }
