@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -41,7 +42,7 @@ class _GalleryState extends State<Gallery> {
     List<FileSystemEntity> _files = files.listSync();
 
     _files.forEach((item) {
-      print(item);
+      print(item.statSync().accessed);
     });
 
     print(_files);
@@ -58,43 +59,58 @@ class _GalleryState extends State<Gallery> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: GridView.count(
-        crossAxisCount: 1,
-        children: List.generate(imgList!.length, (index) {
-          return Card(
-            semanticContainer: true,
-            clipBehavior: Clip.antiAliasWithSaveLayer,
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: Container(
-                    child: AspectRatio(
-                      aspectRatio: 3.0 / 4.0,
-                      child: Image.file(
-                        imgList![index],
-                        fit: BoxFit.fill,
+      body: SingleChildScrollView(
+        child: Column(
+          // crossAxisCount: 1,
+          children: List.generate(imgList!.length, (index) {
+            return Container(
+              child: Card(
+                semanticContainer: true,
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Container(
+                        child: AspectRatio(
+                          aspectRatio: 3.0 / 4.0,
+                          child: Image.file(
+                            imgList![index],
+                            fit: BoxFit.fill,
+                          ),
+                        ),
+                        padding: EdgeInsets.all(10.0),
                       ),
                     ),
-                    padding: EdgeInsets.all(10.0),
-                  ),
+                    Spacer(
+                      flex: 1,
+                    ),
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.all(3),
+                            child: Text('생성일'),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(3),
+                            child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(imgList![index].statSync().accessed)}'),
+                          ),
+                        ],
+                      )
+                    )
+                  ],
                 ),
-                Spacer(
-                  flex: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
                 ),
-                Expanded(
-                  flex: 5,
-                  child: Text('$index'),
-                )
-              ],
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            elevation: 3,
-            margin: EdgeInsets.all(10),
-          );
-        }),
+                elevation: 3,
+                margin: EdgeInsets.all(10),
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
