@@ -1,9 +1,12 @@
 import 'dart:io';
 
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:simple_detection_app/detectDetail.dart';
+
 
 class Gallery extends StatefulWidget {
   const Gallery({Key? key}) : super(key: key);
@@ -14,17 +17,6 @@ class Gallery extends StatefulWidget {
 
 class _GalleryState extends State<Gallery> {
   List? imgList;
-
-  final sampleImg = [
-    {'image': 'assets/img1.png', 'name': '무등산'},
-    {'image': 'assets/img2.png', 'name': '백두산'},
-    {'image': 'assets/img3.png', 'name': '한라산'},
-    {'image': 'assets/img4.png', 'name': '지리산'},
-    {'image': 'assets/img1.png', 'name': '무등산'},
-    {'image': 'assets/img2.png', 'name': '백두산'},
-    {'image': 'assets/img3.png', 'name': '한라산'},
-    {'image': 'assets/img4.png', 'name': '지리산'},
-  ];
 
   @override
   void initState() {
@@ -41,13 +33,27 @@ class _GalleryState extends State<Gallery> {
 
     List<FileSystemEntity> _files = files.listSync();
 
-    _files.forEach((item) {
-      print(item.statSync().accessed);
-    });
-
-    print(_files);
-
     setState(() { imgList = _files; });
+  }
+
+  void showToast(String message) {
+    Fluttertoast.showToast(
+        msg: message,
+        backgroundColor: Colors.lightBlue,
+        toastLength: Toast.LENGTH_SHORT,
+        timeInSecForIosWeb: 1,
+        gravity: ToastGravity.BOTTOM
+    );
+  }
+
+  void detailInfo(context, data) {
+    // showToast(index.toString());
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetectDetail(imgData: data),
+      ),
+    );
   }
 
   @override
@@ -63,10 +69,11 @@ class _GalleryState extends State<Gallery> {
         child: Column(
           // crossAxisCount: 1,
           children: List.generate(imgList!.length, (index) {
-            return Container(
-              child: Card(
-                semanticContainer: true,
-                clipBehavior: Clip.antiAliasWithSaveLayer,
+            return Card(
+              semanticContainer: true,
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              child: InkWell(
+                onTap: () => detailInfo(context, imgList![index]),
                 child: Row(
                   children: [
                     Expanded(
@@ -86,28 +93,28 @@ class _GalleryState extends State<Gallery> {
                       flex: 1,
                     ),
                     Expanded(
-                      flex: 6,
-                      child: Column(
-                        children: <Widget>[
-                          Padding(
-                            padding: EdgeInsets.all(3),
-                            child: Text('생성일'),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(3),
-                            child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(imgList![index].statSync().accessed)}'),
-                          ),
-                        ],
-                      )
+                        flex: 6,
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(3),
+                              child: Text('생성일'),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.all(3),
+                              child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(imgList![index].statSync().accessed)}'),
+                            ),
+                          ],
+                        )
                     )
                   ],
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                elevation: 3,
-                margin: EdgeInsets.all(10),
               ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              elevation: 3,
+              margin: EdgeInsets.all(10),
             );
           }),
         ),
