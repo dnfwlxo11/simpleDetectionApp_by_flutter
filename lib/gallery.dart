@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+
 class Gallery extends StatefulWidget {
   const Gallery({Key? key}) : super(key: key);
 
@@ -8,42 +12,89 @@ class Gallery extends StatefulWidget {
 }
 
 class _GalleryState extends State<Gallery> {
+  List? imgList;
+
   final sampleImg = [
-      {'image': 'assets/img1.png', 'name': '무등산'},
-      {'image': 'assets/img2.png', 'name': '백두산'},
-      {'image': 'assets/img3.png', 'name': '한라산'},
-      {'image': 'assets/img4.png', 'name': '지리산'},
+    {'image': 'assets/img1.png', 'name': '무등산'},
+    {'image': 'assets/img2.png', 'name': '백두산'},
+    {'image': 'assets/img3.png', 'name': '한라산'},
+    {'image': 'assets/img4.png', 'name': '지리산'},
+    {'image': 'assets/img1.png', 'name': '무등산'},
+    {'image': 'assets/img2.png', 'name': '백두산'},
+    {'image': 'assets/img3.png', 'name': '한라산'},
+    {'image': 'assets/img4.png', 'name': '지리산'},
   ];
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    getImages();
+
+    super.initState();
+  }
+
   void getImages() async {
-    print((await getApplicationDocumentsDirectory()).path);
+    String extDir = (await getExternalStorageDirectory())!.path;
+
+    final files = new Directory(join(extDir, 'MyApp'));
+
+    List<FileSystemEntity> _files = files.listSync();
+
+    _files.forEach((item) {
+      print(item);
+    });
+
+    print(_files);
+
+    setState(() { imgList = _files; });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: GridView.count(
-          crossAxisCount: 2,
-          children: List.generate(sampleImg.length, (index) {
-            return Card(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Image.asset('${sampleImg[index]['image']}'),
-                    Text('${sampleImg[index]['name']}'),
-                    RaisedButton(
-                      color: Colors.lightBlue,
-                      onPressed: getImages,
-                      child: Text('자세히보기'),
+      body: GridView.count(
+        crossAxisCount: 1,
+        children: List.generate(imgList!.length, (index) {
+          return Card(
+            semanticContainer: true,
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Container(
+                    child: AspectRatio(
+                      aspectRatio: 3.0 / 4.0,
+                      child: Image.file(
+                        imgList![index],
+                        fit: BoxFit.fill,
+                      ),
                     ),
-                  ],
+                    padding: EdgeInsets.all(10.0),
+                  ),
                 ),
-              )
-            );
-          }),
-        ),
+                Spacer(
+                  flex: 1,
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Text('$index'),
+                )
+              ],
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            elevation: 3,
+            margin: EdgeInsets.all(10),
+          );
+        }),
       ),
     );
   }

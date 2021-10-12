@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -39,19 +40,30 @@ class _CameraDetailState extends State<CameraDetail> {
 
   void detectAction() async {
     showToast('디텍팅 시작');
+
+    String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
+
+    var response = await http.post(
+        Uri.parse(url),
+        body: {
+          "image": '$base64Image'
+        }
+    );
     setState(() => isComplete = false);
 
-    var request = http.MultipartRequest('POST', Uri.parse(url));
-
-    // 헤더 세팅
-    // request.headers["Content-Type"] = "multipart/json";
-
-    // 보낼 것 세팅
-    request.files.add(await http.MultipartFile.fromPath(
-      'image',
-      widget.imagePath
-    ));
-    var response = await request.send();
+    // var request = http.MultipartRequest('POST', Uri.parse(url));
+    //
+    // // 보낼 것 세팅
+    // request.files.add(await http.MultipartFile.fromPath(
+    //   'image',
+    //   widget.imagePath
+    // ));
+    //
+    // // String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
+    //
+    // // print(request.fields);
+    //
+    // var response = await request.send();
 
     print(response.contentLength);
 
