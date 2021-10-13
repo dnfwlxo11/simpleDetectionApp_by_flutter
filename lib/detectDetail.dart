@@ -2,10 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as ui;
+import 'dart:ui' as UI show Image;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:path/path.dart';
 import 'dart:async';
 import 'dart:typed_data';
+
+import 'package:path_provider/path_provider.dart';
+
 
 class DetectDetail extends StatefulWidget {
   final imgData;
@@ -17,44 +21,37 @@ class DetectDetail extends StatefulWidget {
 }
 
 class _DetectDetailState extends State<DetectDetail> {
-
-  ui.Image? _image;
+  UI.Image? _image;
   bool isImageloaded = false;
-  GlobalKey _myCanvasKey = new GlobalKey();
+
 
   var detectSample = {
     'x': 10,
     'y': 10,
-    'w': 10,
-    'h': 10
+    'w': 100,
+    'h': 100,
   };
 
   void setData() {
-    print(widget.imgData);
+    print(widget.imgData is File);
   }
 
-  void drawDetectResult() {
+  void loadUiImage() async {
+    // final ByteData data = await widget.imgData.readAsBytes().buffer.asByteData();
+    // final ByteData data = await rootBundle.load(imageAssetPath);
+    print('hi');
+    // print(await decodeImageFromList(widget.imgData.readAsBytes()));
+    _image = await decodeImageFromList(Uint8List.fromList(File(widget.imgData.path).readAsBytesSync()));
+    print('hello');
 
-  }
-
-  void initImage() async {
-    final ByteData data = await rootBundle.load(widget.imgData.path);
-    _image = await loadImage(Uint8List.view(data.buffer));
-  }
-
-  Future<ui.Image> loadImage(Uint8List img) async {
-    final Completer<ui.Image> completer =  Completer();
-    ui.decodeImageFromList(img, (ui.Image img) {
-      setState(() { isImageloaded = true; });
-      return completer.complete(img);
-    });
-    return completer.future;
   }
 
   @override
   void initState() {
     // TODO: implement initState
-    initImage();
+    loadUiImage();
+    setData();
+    print(_image);
 
     super.initState();
   }
@@ -84,8 +81,7 @@ class _DetectDetailState extends State<DetectDetail> {
             ),
             Expanded(
               flex: 2,
-              child:
-              Container(
+              child: Container(
                 alignment: Alignment.center,
                 child: AspectRatio(
                   aspectRatio: 3.0 / 4.0,
@@ -93,9 +89,45 @@ class _DetectDetailState extends State<DetectDetail> {
                 ),
               ),
             ),
+            Expanded(
+              flex: 2,
+              child: CustomPaint(
+                size: Size(10, 10),
+                painter: MyPainter(detectSample, _image),
+              ),
+            )
           ],
         ),
       ),
     );
+  }
+}
+
+class MyPainter extends CustomPainter {
+  var detect;
+  UI.Image? image;
+
+  MyPainter(detect, image) {
+    this.detect = detect;
+    this.image = image;
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // TODO: implement paint
+    Paint paint = Paint() // Paint 클래스는 어떤 식으로 화면을 그릴지 정할 때 쓰임.
+      ..color = Colors.deepPurpleAccent // 색은 보라색
+      ..strokeCap = StrokeCap.round // 선의 끝은 둥글게 함.
+      ..strokeWidth = 4.0; // 선의 굵기는 4.0
+
+    canvas.drawRect(Rect.fromLTWH(detect['x'].toDouble(), detect['y'].toDouble(), detect['w'].toDouble(), detect['h'].toDouble()), paint);
+    // canvas.drawImage(image, new Offset(50.0, 50.0), paint);
+    // canvas.drawRect(Rect.fromLTWH(10, 10, 100, 100), paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    // TODO: implement shouldRepaint
+    return false;
   }
 }
