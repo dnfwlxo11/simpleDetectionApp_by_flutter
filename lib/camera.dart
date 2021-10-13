@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver/gallery_saver.dart';
@@ -84,14 +85,14 @@ class _CameraState extends State<Camera> {
                       );
 
                       await Directory(path).create();
-                      DateTime currTime = DateTime.now();
+                      String currTime = DateFormat('yyyyMMddhhmm').format(DateTime.now());
 
                       XFile picture = await _controller!.takePicture();
-                      picture.saveTo(join(path, '${currTime}_detect.png'));
+                      picture.saveTo(join(path, '${currTime}Detect.png'));
 
                       // await GallerySaver.saveImage(path, albumName: 'MyApp');
 
-                      String imagePath = '$path/${currTime}_detect.png';
+                      String imagePath = '$path/${currTime}Detect.png';
 
                       Navigator.push(
                         context,

@@ -1,5 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:async';
+import 'dart:typed_data';
 
 class DetectDetail extends StatefulWidget {
   final imgData;
@@ -12,14 +18,43 @@ class DetectDetail extends StatefulWidget {
 
 class _DetectDetailState extends State<DetectDetail> {
 
+  ui.Image? _image;
+  bool isImageloaded = false;
+  GlobalKey _myCanvasKey = new GlobalKey();
+
+  var detectSample = {
+    'x': 10,
+    'y': 10,
+    'w': 10,
+    'h': 10
+  };
+
   void setData() {
     print(widget.imgData);
+  }
+
+  void drawDetectResult() {
+
+  }
+
+  void initImage() async {
+    final ByteData data = await rootBundle.load(widget.imgData.path);
+    _image = await loadImage(Uint8List.view(data.buffer));
+  }
+
+  Future<ui.Image> loadImage(Uint8List img) async {
+    final Completer<ui.Image> completer =  Completer();
+    ui.decodeImageFromList(img, (ui.Image img) {
+      setState(() { isImageloaded = true; });
+      return completer.complete(img);
+    });
+    return completer.future;
   }
 
   @override
   void initState() {
     // TODO: implement initState
-    setData();
+    initImage();
 
     super.initState();
   }

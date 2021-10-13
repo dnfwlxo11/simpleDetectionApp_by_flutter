@@ -17,23 +17,29 @@ class Gallery extends StatefulWidget {
 
 class _GalleryState extends State<Gallery> {
   List? imgList;
+  bool isLoading = false;
 
   @override
   void initState() {
     // TODO: implement initState
+    isLoading = true;
+    if (isLoading) CircularProgressIndicator();
+
     getImages();
 
     super.initState();
   }
 
   void getImages() async {
-    String extDir = (await getExternalStorageDirectory())!.path;
+    final extDir = await getExternalStorageDirectory();
 
-    final files = new Directory(join(extDir, 'MyApp'));
+    final files = await new Directory(join(extDir!.path, 'MyApp'));
 
     List<FileSystemEntity> _files = files.listSync();
 
+    isLoading = false;
     setState(() { imgList = _files; });
+    // print(_files);
   }
 
   void showToast(String message) {
@@ -54,6 +60,11 @@ class _GalleryState extends State<Gallery> {
         builder: (context) => DetectDetail(imgData: data),
       ),
     );
+  }
+
+  void removeFile(File file) {
+    file.delete();
+    getImages();
   }
 
   @override
@@ -96,6 +107,13 @@ class _GalleryState extends State<Gallery> {
                         flex: 6,
                         child: Column(
                           children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(3),
+                              child: InkWell(
+                                onTap: () => removeFile(imgList![index]),
+                                child: Icon(Icons.delete),
+                              )
+                            ),
                             Padding(
                               padding: EdgeInsets.all(3),
                               child: Text('생성일'),

@@ -49,6 +49,7 @@ class _CameraDetailState extends State<CameraDetail> {
           "image": '$base64Image'
         }
     );
+
     setState(() => isComplete = false);
 
     // var request = http.MultipartRequest('POST', Uri.parse(url));
