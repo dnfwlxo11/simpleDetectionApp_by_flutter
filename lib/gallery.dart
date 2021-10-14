@@ -39,7 +39,6 @@ class _GalleryState extends State<Gallery> {
 
     isLoading = false;
     setState(() { imgList = _files; });
-    // print(_files);
   }
 
   void showToast(String message) {
