@@ -1,15 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui' as UI show Image;
-import 'package:flutter/services.dart' show rootBundle;
-import 'package:path/path.dart';
-import 'dart:async';
-import 'dart:typed_data';
-
-import 'package:path_provider/path_provider.dart';
-
+import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class DetectDetail extends StatefulWidget {
   final imgData;
@@ -21,113 +12,129 @@ class DetectDetail extends StatefulWidget {
 }
 
 class _DetectDetailState extends State<DetectDetail> {
-  UI.Image? _image;
-  bool isImageloaded = false;
 
+  var detectSample = [
+    {
+      'class': '사람',
+      'x': 10,
+      'y': 10,
+      'w': 100,
+      'h': 100,
+    },
+    {
+      'class': '동물',
+      'x': 50,
+      'y': 50,
+      'w': 60,
+      'h': 80,
+    },
+    {
+      'class': '자동차',
+      'x': 70,
+      'y': 20,
+      'w': 120,
+      'h': 80,
+    },
+    {
+      'class': '콜라',
+      'x': 25,
+      'y': 55,
+      'w': 120,
+      'h': 80,
+    },
+  ];
 
-  var detectSample = {
-    'x': 10,
-    'y': 10,
-    'w': 100,
-    'h': 100,
-  };
+  void saveDetectResult() {
 
-  void setData() {
-    print(widget.imgData is File);
   }
 
-  void loadUiImage() async {
-    // final ByteData data = await widget.imgData.readAsBytes().buffer.asByteData();
-    // final ByteData data = await rootBundle.load(imageAssetPath);
-    print('hi');
-    // print(await decodeImageFromList(widget.imgData.readAsBytes()));
-    _image = await decodeImageFromList(Uint8List.fromList(File(widget.imgData.path).readAsBytesSync()));
-    print('hello');
+  void previewCropImage() {
 
+  }
+
+  Widget generateRect(points) {
+    print(points['x'].toDouble() is double);
+    return new Positioned(
+      left: points['x'].toDouble(),
+      top: points['y'].toDouble(),
+      child: Container(
+        width: points['w'].toDouble(),
+        height: points['h'].toDouble(),
+        decoration: BoxDecoration(
+          border: Border.all(
+            width: 2,
+            color: Colors.blue,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   void initState() {
-    // TODO: implement initState
-    loadUiImage();
-    setData();
-    print(_image);
-
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget detectList(detects) {
+      return Column(
+        children: List.generate(detects.length, (index) {
+          return ListTile(
+            leading: Icon(Icons.food_bank),
+            title: Text('${detects[index]['class']}'),
+          );
+        }),
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset : false,
       appBar: AppBar(title: Text('자세히 보기')),
-      body: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              flex: 6,
-              child:
-              Container(
-                alignment: Alignment.center,
-                child: AspectRatio(
-                  aspectRatio: 3.0 / 4.0,
-                  child: Image.file(widget.imgData, fit: BoxFit.fill),
-                ),
-              ),
+      body: SlidingUpPanel(
+        borderRadius:  BorderRadius.only(
+            topLeft: Radius.circular(18.0),
+            topRight: Radius.circular(18.0)
+        ),
+        panel: Container(
+          child: detectList(detectSample),
+        ),
+
+        collapsed: Container(
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24.0),
+              topRight: Radius.circular(24.0),
             ),
-            Spacer(
-              flex: 1,
-            ),
-            Expanded(
-              flex: 2,
-              child: Container(
-                alignment: Alignment.center,
-                child: AspectRatio(
-                  aspectRatio: 3.0 / 4.0,
-                  child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(widget.imgData.statSync().accessed)}'),
-                ),
+          ),
+          child: Column(
+            children: [
+              Center(
+                child: Icon(Icons.keyboard_arrow_up, size: 50, color: Colors.white,),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: CustomPaint(
-                size: Size(10, 10),
-                painter: MyPainter(detectSample, _image),
+              Text(
+                "음식 분석 결과",
+                style: TextStyle(color: Colors.white, fontSize: 20),
               ),
-            )
-          ],
+            ],
+          ),
+        ),
+
+        body: Card(
+          child: Container(
+              child: Stack(
+                children: <Widget>[
+                  AspectRatio(
+                    aspectRatio: 3.0 / 4.0,
+                    child: Image.file(widget.imgData, fit: BoxFit.fill),
+                  ),
+                  for (var i in detectSample) generateRect(i)
+                ],
+              )
+          ),
         ),
       ),
     );
-  }
-}
-
-class MyPainter extends CustomPainter {
-  var detect;
-  UI.Image? image;
-
-  MyPainter(detect, image) {
-    this.detect = detect;
-    this.image = image;
-  }
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // TODO: implement paint
-    Paint paint = Paint() // Paint 클래스는 어떤 식으로 화면을 그릴지 정할 때 쓰임.
-      ..color = Colors.deepPurpleAccent // 색은 보라색
-      ..strokeCap = StrokeCap.round // 선의 끝은 둥글게 함.
-      ..strokeWidth = 4.0; // 선의 굵기는 4.0
-
-    canvas.drawRect(Rect.fromLTWH(detect['x'].toDouble(), detect['y'].toDouble(), detect['w'].toDouble(), detect['h'].toDouble()), paint);
-    // canvas.drawImage(image, new Offset(50.0, 50.0), paint);
-    // canvas.drawRect(Rect.fromLTWH(10, 10, 100, 100), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    // TODO: implement shouldRepaint
-    return false;
   }
 }
