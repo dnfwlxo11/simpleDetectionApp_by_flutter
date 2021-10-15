@@ -14,7 +14,7 @@ class CameraDetail extends StatefulWidget {
 }
 
 class _CameraDetailState extends State<CameraDetail> {
-  String url = 'http://192.168.0.106:3000/flutter';
+  String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
   bool isComplete = true;
   bool isImage = false;
 
@@ -41,16 +41,38 @@ class _CameraDetailState extends State<CameraDetail> {
   void detectAction() async {
     showToast('디텍팅 시작');
 
+    var imageTmp = await decodeImageFromList(File(widget.imagePath).readAsBytesSync());
     String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
+
+    var body = json.encode({
+      "inputs": [
+        {
+          "name": "image_arrays:0",
+          "shape": [1, imageTmp.height, imageTmp.width, 3],
+          "datatype": "UINT8",
+          "parameters": {
+            "binary_data_size": base64Image.length
+          }
+        }
+      ],
+
+      "parameters":{
+        "binary_data_output": false
+      }
+    });
 
     var response = await http.post(
         Uri.parse(url),
-        body: {
-          "image": '$base64Image'
-        }
+        headers: {
+          'Inference-Header-Content-Length': '${body.length}',
+          'Accept': '*/*'
+        },
+        body: (body + base64Image)
     );
 
-    setState(() => isComplete = false);
+    print('ok');
+
+    // setState(() => isComplete = false);
 
     // var request = http.MultipartRequest('POST', Uri.parse(url));
     //
@@ -66,10 +88,21 @@ class _CameraDetailState extends State<CameraDetail> {
     //
     // var response = await request.send();
 
-    print(response.contentLength);
+    var predict = json.decode(response.body)['outputs'][0]['data'];
+    List<List> boxData = [];
 
-    setState(() => isComplete = true);
-    setState(() => isImage = true);
+    for (var i=0;i<((predict.length)/7).toInt();i++) {
+      boxData.add(predict.sublist(0, 7));
+    }
+
+    for (var i in boxData) {
+      print('좌표: ${i.sublist(1, 5)}');
+      print('정확도: ${i[1]}');
+      print('클래스 인덱스: ${i[2]}');
+    }
+
+    // setState(() => isComplete = true);
+    // setState(() => isImage = true);
   }
 
   void saveAction() async {

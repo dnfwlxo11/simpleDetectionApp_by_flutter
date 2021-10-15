@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -62,7 +63,8 @@ class _GalleryState extends State<Gallery> {
   }
 
   void removeFile(File file) {
-    file.delete();
+    GallerySaver.saveImage(file.path);
+    // file.delete();
     getImages();
   }
 
