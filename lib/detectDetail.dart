@@ -20,12 +20,10 @@ class DetectDetail extends StatefulWidget {
 }
 
 class _DetectDetailState extends State<DetectDetail> {
-
-  final double _initFabHeight = 120.0;
-  double _fabHeight = 0;
-  double _panelHeightOpen = 0;
-  double _panelHeightClosed = 95.0;
   RenderBox? renderBox;
+  double detectImgWidth = 0.0;
+  double detectImgHeight = 0.0;
+  bool isLoaded = false;
 
   ScrollController sc = new ScrollController();
   PanelController pc = new PanelController();
@@ -62,8 +60,27 @@ class _DetectDetailState extends State<DetectDetail> {
     },
   ];
 
-  void saveDetectResult() {
+  @override
+  void initState() {
+    super.initState();
 
+    setState(() { _image = widget.imgData; });
+    // final RenderBox renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      setState(() {
+        renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
+        detectImgWidth = renderBox!.size.width;
+        detectImgHeight = renderBox!.size.height;
+        isLoaded = true;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _image = null;
+    super.dispose();
   }
 
   void detectAction() async {
@@ -235,62 +252,38 @@ class _DetectDetailState extends State<DetectDetail> {
     );
   }
 
-  Widget generateRect(points) {
-    double imageWidth = renderBox!.size.width;
-    double imageHeight = renderBox!.size.height;
-
-    print(points['x']*imageWidth);
-    print(points['w']*imageWidth);
-    print(points['y']*imageHeight);
-    print(points['h']*imageHeight);
-
-    return new Positioned(
-      left: (points['x']*imageWidth),
-      top: (points['y']*imageHeight),
-      child: Stack(
-        children: [
-          Container(
-            padding: EdgeInsets.all(7),
-            child: Text(
-              '${points['class']}',
-              style: TextStyle(fontSize: 20),
+  List<Widget> generateRect(points) {
+    return List.generate(points.length, (idx) {
+      return new Positioned(
+        left: (points[idx]['x']*detectImgWidth),
+        top: (points[idx]['y']*detectImgHeight),
+        child: Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.all(7),
+              child: Text(
+                '${points[idx]['class']}',
+                style: TextStyle(fontSize: 20),
+              ),
+              color: Colors.blue,
             ),
-            color: Colors.blue,
-          ),
-          InkWell(
-            child: Container(
-              width: (points['w']*imageWidth),
-              height: (points['h']*imageHeight),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  width: 2,
-                  color: Colors.blue,
+            InkWell(
+              child: Container(
+                width: (points[idx]['w']*detectImgWidth),
+                height: (points[idx]['h']*detectImgHeight),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    width: 2,
+                    color: Colors.blue,
+                  ),
                 ),
               ),
+              onTap: () => showDetailDetection(points[idx]),
             ),
-            onTap: () => showDetailDetection(points),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    setState(() { _image = widget.imgData; });
-    // final RenderBox renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      setState(() => renderBox = imageBox.currentContext!.findRenderObject() as RenderBox);
+          ],
+        ),
+      );
     });
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    _image = null;
-    super.dispose();
   }
 
   GlobalKey imageBox = GlobalKey();
@@ -351,41 +344,18 @@ class _DetectDetailState extends State<DetectDetail> {
       );
     }
 
-    Widget collapseWidget() {
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.blue,
-          borderRadius: BorderRadius.only(topLeft: Radius.circular(12.0), topRight: Radius.circular(12.0)),
-        ),
-        margin: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 0.0),
-        child: Column(
-          children: [
-            Center(
-              child: Icon(Icons.keyboard_arrow_up, size: 40, color: Colors.white,),
-            ),
-            Text(
-              "분석 결과",
-              style: TextStyle(color: Colors.white, fontSize: 20),
-            ),
-          ],
-        ),
-      );
-    }
-
     Widget bodyWidget() {
-      return Card(
-        child: Container(
-          key: imageBox,
-          child: Stack(
-            children: <Widget>[
-              AspectRatio(
-                aspectRatio: 3.0 / 4.0,
-                child: Image.file(_image!, fit: BoxFit.fill),
-              ),
-              if (renderBox != null) for (var i in detectSample) generateRect(i)
-            ],
+      return Stack(
+        children: <Widget>[
+          Container(
+            key: imageBox,
+            child: AspectRatio(
+              aspectRatio: 3.0 / 4.0,
+              child: Image.file(_image!, fit: BoxFit.fill),
+            ),
           ),
-        ),
+          if (renderBox != null) ...generateRect(detectSample),
+        ],
       );
     }
 
@@ -402,11 +372,7 @@ class _DetectDetailState extends State<DetectDetail> {
 
         // collapsed: collapseWidget(),
 
-        panel: Container(
-          child: detectList(detectSample),
-        ),
-
-
+        panel: detectList(detectSample),
         body: bodyWidget(),
       ),
     );
