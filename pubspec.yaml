@@ -46,6 +46,7 @@ dependencies:
   cached_network_image: ^3.1.0
   sliding_up_panel: ^2.0.0+1
   image: ^3.0.8
+  dio: ^4.0.0
 #  permission_handler: ^8.0.0 # complie version 30
 
 dev_dependencies:

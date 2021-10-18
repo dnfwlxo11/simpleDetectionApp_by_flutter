@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
-import 'package:image/image.dart' as cropLib;
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:image/image.dart' as crop;
 
 
 class DetectDetail extends StatefulWidget {
@@ -24,6 +25,7 @@ class _DetectDetailState extends State<DetectDetail> {
   double _fabHeight = 0;
   double _panelHeightOpen = 0;
   double _panelHeightClosed = 95.0;
+  RenderBox? renderBox;
 
   ScrollController sc = new ScrollController();
   PanelController pc = new PanelController();
@@ -32,31 +34,31 @@ class _DetectDetailState extends State<DetectDetail> {
   var detectSample = [
     {
       'class': '사람',
-      'x': 10,
-      'y': 10,
-      'w': 200,
-      'h': 170,
+      'x': 0.0,
+      'y': 0.0,
+      'w': 0.25,
+      'h': 0.25,
     },
     {
       'class': '동물',
-      'x': 80,
-      'y': 400,
-      'w': 100,
-      'h': 100,
+      'x': 0.25,
+      'y': 0.25,
+      'w': 0.25,
+      'h': 0.25,
     },
     {
       'class': '자동차',
-      'x': 240,
-      'y': 200,
-      'w': 90,
-      'h': 90,
+      'x': 0.5,
+      'y': 0.5,
+      'w': 0.25,
+      'h': 0.25,
     },
     {
       'class': '콜라',
-      'x': 210,
-      'y': 370,
-      'w': 170,
-      'h': 130,
+      'x': 0.75,
+      'y': 0.75,
+      'w': 0.25,
+      'h': 0.25,
     },
   ];
 
@@ -65,27 +67,34 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   void detectAction() async {
+    var dio = new Dio();
+
     String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
     var imageTmp = await decodeImageFromList(_image!.readAsBytesSync());
+    var bytes = _image!.readAsBytesSync();
     var base64Image = await base64Encode(_image!.readAsBytesSync());
 
-    // var hex = base64Decode(LineSplitter.split(base64Image).join())
-    //     .map((e) {
-    //       if (e.toInt() < 16) return e.toRadixString(16).padLeft(3, '/x');
-    //       else return e.toRadixString(16).padLeft(4, '/x');
-    //     })
-    //     .join();
+    // var cnt = 0;
+    // base64Image = base64.normalize(base64Image.replaceAll('\n', '').replaceAll(' ', ''));
+    var hex = bytes
+        .map((e) {
+          if (e > 255) return e;
+          if (e < 16) return '\\x0' + e.toRadixString(16);
+          else return '\\x' + e.toRadixString(16);
+        })
+        .join();
 
-    // print(hex.length);
+    print(hex.substring(0, 100));
+    print(hex.length);
 
-    var body = json.encode({
+    var body = jsonEncode({
       "inputs": [
         {
           "name": "image_arrays:0",
           "shape": [1, imageTmp.height, imageTmp.width, 3],
           "datatype": "UINT8",
           "parameters": {
-            "binary_data_size": base64Image.length
+            "binary_data_size": hex.length
           }
         }
       ],
@@ -101,26 +110,55 @@ class _DetectDetailState extends State<DetectDetail> {
           'Inference-Header-Content-Length': '${body.length}',
           'Accept': '*/*'
         },
-        body: (body)
+        body: body + hex
     );
 
-    print('ok');
+    //
+    // // setState(() => isComplete = false);
 
-    // setState(() => isComplete = false);
+    // var request = http.MultipartRequest(
+    //     'POST',
+    //     Uri.parse(url)
+    // );
+    // //
+    // // // // 보낼 것 세팅
+    // request.headers.addAll({ 'Inference-Header-Content-Length': '${_image!.readAsBytesSync().length}'});
+    // request.headers.addAll({ 'Content-Type': 'application/x-www-form-urlencoded' });
+    // request.headers.addAll({ 'Accept': '*/*'});
+    //
+    // request.fields.addAll({
+    //   "inputs": jsonEncode([
+    //     {
+    //       "name": "image_arrays:0",
+    //       "shape": [1, imageTmp.height, imageTmp.width, 3],
+    //       "datatype": "UINT8"
+    //     }
+    //   ])
+    // });
+    //
+    // request.fields.addAll({
+    //   "parameter": jsonEncode({
+    //     "binary_data_output": false
+    //   })
+    // });
 
-    // var request = http.MultipartRequest('POST', Uri.parse(url));
-    //
-    // // 보낼 것 세팅
-    // request.files.add(await http.MultipartFile.fromPath(
-    //   'image',
-    //   widget.imagePath
-    // ));
-    //
-    // // String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
-    //
-    // // print(request.fields);
-    //
+    // request.files.add(
+    //   await http.MultipartFile
+    //     .fromBytes(
+    //       'files',
+    //       _image!.readAsBytesSync(),
+    //       filename: _image!.path.split('/').last
+    //   ),
+    // );
+
+    // String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
+
+    // print(request.fields);
+
     // var response = await request.send();
+    // print(await response.stream.transform(utf8.decoder).join());
+
+    print(response.body);
 
     var predict = json.decode(response.body)['outputs'][0]['data'];
     List<List> boxData = [];
@@ -129,20 +167,43 @@ class _DetectDetailState extends State<DetectDetail> {
       boxData.add(predict.sublist(0, 7));
     }
 
-    // fojr (var i in boxData) {
-    //   print('좌표: ${i.sublist(1, 5)}');
-    //   print('정확도: ${i[1]}');
-    //   print('클래스 인덱스: ${i[2]}');
-    // }
+    for (var i in boxData) {
+      if (i[5] < 0.1) break;
+      print('좌표: ${i.sublist(1, 5)}');
+      print('정확도: ${i[1]}');
+      print('클래스 인덱스: ${i[2]}');
+    }
 
     // setState(() => isComplete = true);
     // setState(() => isImage = true);
   }
 
+  Future<File> saveAndLoadDetectImage(String path, crop.Image data) async {
+    new FileImage(File(path)).evict();
+    new File(path).writeAsBytesSync(crop.encodePng(data));
+
+    return File(path);
+  }
+
   void showDetailDetection(points) async {
-    // cropLib.Image cropped = cropLib.copyCrop(Image.file(widget.imgData), 10, 10, 200, 170);
-    //
-    // Image croppedImage = Image.memory(cropLib.encodePng(cropped));
+    var bytes = _image!.readAsBytesSync();
+    var realImage = await decodeImageFromList(bytes);
+    final extDir = await getExternalStorageDirectory();
+
+    double imageWidth = renderBox!.size.width;
+    double imageHeight = renderBox!.size.height;
+
+    print(imageWidth);
+    print(imageHeight);
+    print(points);
+
+    var tmpPath = extDir!.path + '/MyApp/tmp.png';
+
+    crop.Image? image = await crop.decodeImage(bytes);
+    image = await crop.copyResize(image!, width: (imageWidth).toInt(), height: (imageHeight).toInt());
+    crop.Image cropped = await crop.copyCrop(image, (points['x']*imageWidth).toInt(), (points['y']*imageHeight).toInt(), (points['w']*imageWidth).toInt(), (points['h']*imageHeight).toInt());
+
+    File? croppedImage = await saveAndLoadDetectImage(tmpPath, cropped);
 
     showDialog(
         context: context,
@@ -153,9 +214,9 @@ class _DetectDetailState extends State<DetectDetail> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AspectRatio(
-                  aspectRatio: 4.0 / 3.0,
+                  aspectRatio: 3.0 / 4.0,
                   child: Image.file(
-                    _image!,
+                    croppedImage,
                     fit: BoxFit.fill,
                   ),
                 ),
@@ -175,9 +236,17 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   Widget generateRect(points) {
+    double imageWidth = renderBox!.size.width;
+    double imageHeight = renderBox!.size.height;
+
+    print(points['x']*imageWidth);
+    print(points['w']*imageWidth);
+    print(points['y']*imageHeight);
+    print(points['h']*imageHeight);
+
     return new Positioned(
-      left: points['x'].toDouble(),
-      top: points['y'].toDouble(),
+      left: (points['x']*imageWidth),
+      top: (points['y']*imageHeight),
       child: Stack(
         children: [
           Container(
@@ -190,8 +259,8 @@ class _DetectDetailState extends State<DetectDetail> {
           ),
           InkWell(
             child: Container(
-              width: points['w'].toDouble(),
-              height: points['h'].toDouble(),
+              width: (points['w']*imageWidth),
+              height: (points['h']*imageHeight),
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 2,
@@ -211,7 +280,20 @@ class _DetectDetailState extends State<DetectDetail> {
     super.initState();
 
     setState(() { _image = widget.imgData; });
+    // final RenderBox renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      setState(() => renderBox = imageBox.currentContext!.findRenderObject() as RenderBox);
+    });
   }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _image = null;
+    super.dispose();
+  }
+
+  GlobalKey imageBox = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -221,8 +303,7 @@ class _DetectDetailState extends State<DetectDetail> {
             contentPadding: const EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 6.0),
             leading: Icon(Icons.food_bank),
             title: Text('${detects[idx]['class']}'),
-            // onTap: () => showDetailDetection(detects[idx]),
-            onTap: () => detectAction(),
+            onTap: () => showDetailDetection(detects[idx]),
           );
         }).toList();
 
@@ -294,15 +375,16 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget bodyWidget() {
       return Card(
         child: Container(
-            child: Stack(
-              children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 3.0 / 4.0,
-                  child: Image.file(_image!, fit: BoxFit.fill),
-                ),
-                for (var i in detectSample) generateRect(i)
-              ],
-            )
+          key: imageBox,
+          child: Stack(
+            children: <Widget>[
+              AspectRatio(
+                aspectRatio: 3.0 / 4.0,
+                child: Image.file(_image!, fit: BoxFit.fill),
+              ),
+              if (renderBox != null) for (var i in detectSample) generateRect(i)
+            ],
+          ),
         ),
       );
     }

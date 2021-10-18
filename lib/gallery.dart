@@ -17,7 +17,7 @@ class Gallery extends StatefulWidget {
 }
 
 class _GalleryState extends State<Gallery> {
-  List? imgList;
+  List imgList = [];
   bool isLoading = false;
 
   @override
@@ -38,6 +38,7 @@ class _GalleryState extends State<Gallery> {
 
     List<FileSystemEntity> _files = files.listSync();
 
+    print(_files);
     isLoading = false;
     setState(() { imgList = _files; });
   }
@@ -63,8 +64,8 @@ class _GalleryState extends State<Gallery> {
   }
 
   void removeFile(File file) {
-    GallerySaver.saveImage(file.path);
-    // file.delete();
+    // GallerySaver.saveImage(file.path);
+    file.delete();
     getImages();
   }
 
@@ -80,12 +81,12 @@ class _GalleryState extends State<Gallery> {
       body: SingleChildScrollView(
         child: Column(
           // crossAxisCount: 1,
-          children: List.generate(imgList!.length, (index) {
+          children: List.generate(imgList.length, (index) {
             return Card(
               semanticContainer: true,
               clipBehavior: Clip.antiAliasWithSaveLayer,
               child: InkWell(
-                onTap: () => detailInfo(context, imgList![index]),
+                onTap: () => detailInfo(context, imgList[index]),
                 child: Row(
                   children: [
                     Expanded(
@@ -94,7 +95,7 @@ class _GalleryState extends State<Gallery> {
                         child: AspectRatio(
                           aspectRatio: 3.0 / 4.0,
                           child: Image.file(
-                            imgList![index],
+                            imgList[index],
                             fit: BoxFit.fill,
                           ),
                         ),
@@ -111,7 +112,7 @@ class _GalleryState extends State<Gallery> {
                             Padding(
                               padding: EdgeInsets.all(3),
                               child: InkWell(
-                                onTap: () => removeFile(imgList![index]),
+                                onTap: () => removeFile(imgList[index]),
                                 child: Icon(Icons.delete),
                               )
                             ),
@@ -121,7 +122,7 @@ class _GalleryState extends State<Gallery> {
                             ),
                             Padding(
                               padding: EdgeInsets.all(3),
-                              child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(imgList![index].statSync().accessed)}'),
+                              child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(imgList[index].statSync().accessed)}'),
                             ),
                           ],
                         )
