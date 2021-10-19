@@ -101,7 +101,6 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   void detectAction() async {
-    // String url = 'http://192.168.0.106:3000/flutter';
     String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
 
     var bytes = _image!.readAsBytesSync().buffer.asUint8List();

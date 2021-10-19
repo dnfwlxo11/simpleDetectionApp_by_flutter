@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as crop;
+import 'package:flutter/services.dart' show rootBundle;
 
 class CameraDetail extends StatefulWidget {
   final String imagePath;
@@ -17,11 +19,22 @@ class _CameraDetailState extends State<CameraDetail> {
   String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
   bool isComplete = true;
   bool isImage = false;
+  File? _image;
+  var labelMap;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    getLabelMap();
+    print(labelMap);
+    setState(() { _image = File(widget.imagePath); });
+
+  }
+
+  getLabelMap() async {
+    return rootBundle.loadString('assets/labelMap.json')
+    .then((jsonStr) => jsonDecode(jsonStr));
   }
 
   @override
@@ -39,20 +52,20 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void detectAction() async {
-    showToast('디텍팅 시작');
+    String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
 
-    var imageTmp = await decodeImageFromList(File(widget.imagePath).readAsBytesSync());
-    String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
+    var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
-    var body = json.encode({
+    crop.Image? image = await crop.decodeImage(bytes);
+    var decodeBytes = image!.getBytes(format: crop.Format.rgb);
+
+    var body = jsonEncode({
       "inputs": [
         {
           "name": "image_arrays:0",
-          "shape": [1, imageTmp.height, imageTmp.width, 3],
+          "shape": [1, image.height, image.width, 3],
           "datatype": "UINT8",
-          "parameters": {
-            "binary_data_size": base64Image.length
-          }
+          "data": decodeBytes
         }
       ],
 
@@ -63,46 +76,25 @@ class _CameraDetailState extends State<CameraDetail> {
 
     var response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Inference-Header-Content-Length': '${body.length}',
-          'Accept': '*/*'
-        },
-        body: (body + base64Image)
+        body: body
     );
 
-    print('ok');
-
-    // setState(() => isComplete = false);
-
-    // var request = http.MultipartRequest('POST', Uri.parse(url));
-    //
-    // // 보낼 것 세팅
-    // request.files.add(await http.MultipartFile.fromPath(
-    //   'image',
-    //   widget.imagePath
-    // ));
-    //
-    // // String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
-    //
-    // // print(request.fields);
-    //
-    // var response = await request.send();
+    print(response.body);
 
     var predict = json.decode(response.body)['outputs'][0]['data'];
     List<List> boxData = [];
 
     for (var i=0;i<((predict.length)/7).toInt();i++) {
-      boxData.add(predict.sublist(0, 7));
+      boxData.add(predict.sublist(0 + (i * 7), 7 + (i * 7)));
     }
 
+    String result = '';
     for (var i in boxData) {
-      print('좌표: ${i.sublist(1, 5)}');
-      print('정확도: ${i[1]}');
-      print('클래스 인덱스: ${i[2]}');
+      if (i[5] < 0.3) break;
+      result += '좌표: ${i.sublist(1, 5)} / 정확도: ${i[5]} / 클래스 인덱스: ${i[6]} \n';
     }
 
-    // setState(() => isComplete = true);
-    // setState(() => isImage = true);
+    showToast(result);
   }
 
   void saveAction() async {
