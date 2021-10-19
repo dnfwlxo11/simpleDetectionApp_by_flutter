@@ -28,36 +28,7 @@ class _DetectDetailState extends State<DetectDetail> {
   PanelController pc = new PanelController();
   File? _image;
 
-  var detectSample = [
-    {
-      'class': '사람',
-      'x': 0.0,
-      'y': 0.0,
-      'w': 0.25,
-      'h': 0.25,
-    },
-    {
-      'class': '동물',
-      'x': 0.25,
-      'y': 0.25,
-      'w': 0.25,
-      'h': 0.25,
-    },
-    {
-      'class': '자동차',
-      'x': 0.5,
-      'y': 0.5,
-      'w': 0.25,
-      'h': 0.25,
-    },
-    {
-      'class': '콜라',
-      'x': 0.75,
-      'y': 0.75,
-      'w': 0.25,
-      'h': 0.25,
-    },
-  ];
+  var detectSample = [];
 
   @override
   void initState() {
@@ -82,22 +53,40 @@ class _DetectDetailState extends State<DetectDetail> {
     super.dispose();
   }
 
-  static List<int>? convertInt2Bytes(value, Endian order, int bytesSize ) {
-    try{
-      final kMaxBytes = 8;
-      var bytes = Uint8List(kMaxBytes)
-        ..buffer.asByteData().setInt64(0, value, order);
-      List<int> intArray;
-      if(order == Endian.big){
-        intArray = bytes.sublist(kMaxBytes-bytesSize, kMaxBytes).toList();
-      }else{
-        intArray = bytes.sublist(0, bytesSize).toList();
-      }
-      return intArray;
-    }catch(e) {
-      print('util convert error: $e');
-    }
-    return null;
+  void addPredict() {
+    setState(() {
+      detectSample.add({
+        'class': '사람',
+        'x': 0.0,
+        'y': 0.0,
+        'w': 0.25,
+        'h': 0.25,
+      });
+
+      detectSample.add({
+        'class': '동물',
+        'x': 0.25,
+        'y': 0.25,
+        'w': 0.25,
+        'h': 0.25,
+      });
+
+      detectSample.add({
+        'class': '자동차',
+        'x': 0.5,
+        'y': 0.5,
+        'w': 0.25,
+        'h': 0.25,
+      });
+
+      detectSample.add({
+        'class': '콜라',
+        'x': 0.75,
+        'y': 0.75,
+        'w': 0.25,
+        'h': 0.25,
+      });
+    });
   }
 
   void detectAction() async {
@@ -200,6 +189,8 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   List<Widget> generateRect(points) {
+
+
     return List.generate(points.length, (idx) {
       return new Positioned(
         left: (points[idx]['x']*detectImgWidth),
@@ -238,13 +229,14 @@ class _DetectDetailState extends State<DetectDetail> {
   @override
   Widget build(BuildContext context) {
     Widget detectList(detects) {
+      addPredict();
       List<Widget> detectListTile = List.generate(detects.length, (idx) {
           return ListTile(
             contentPadding: const EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 6.0),
             leading: Icon(Icons.food_bank),
             title: Text('${detects[idx]['class']}'),
             // onTap: () => showDetailDetection(detects[idx]),
-            onTap: () => detectAction()
+            onTap: () => addPredict(),
           );
         }).toList();
 
