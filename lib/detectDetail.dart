@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui';
 
-import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as crop;
-
 
 class DetectDetail extends StatefulWidget {
   final imgData;
@@ -83,36 +82,40 @@ class _DetectDetailState extends State<DetectDetail> {
     super.dispose();
   }
 
+  static List<int>? convertInt2Bytes(value, Endian order, int bytesSize ) {
+    try{
+      final kMaxBytes = 8;
+      var bytes = Uint8List(kMaxBytes)
+        ..buffer.asByteData().setInt64(0, value, order);
+      List<int> intArray;
+      if(order == Endian.big){
+        intArray = bytes.sublist(kMaxBytes-bytesSize, kMaxBytes).toList();
+      }else{
+        intArray = bytes.sublist(0, bytesSize).toList();
+      }
+      return intArray;
+    }catch(e) {
+      print('util convert error: $e');
+    }
+    return null;
+  }
+
   void detectAction() async {
-    var dio = new Dio();
-
+    // String url = 'http://192.168.0.106:3000/flutter';
     String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
-    var imageTmp = await decodeImageFromList(_image!.readAsBytesSync());
-    var bytes = _image!.readAsBytesSync();
-    var base64Image = await base64Encode(_image!.readAsBytesSync());
 
-    // var cnt = 0;
-    // base64Image = base64.normalize(base64Image.replaceAll('\n', '').replaceAll(' ', ''));
-    var hex = bytes
-        .map((e) {
-          if (e > 255) return e;
-          if (e < 16) return '\\x0' + e.toRadixString(16);
-          else return '\\x' + e.toRadixString(16);
-        })
-        .join();
+    var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
-    print(hex.substring(0, 100));
-    print(hex.length);
+    crop.Image? image = await crop.decodeImage(bytes);
+    var decodeBytes = image!.getBytes(format: crop.Format.rgb);
 
     var body = jsonEncode({
       "inputs": [
         {
           "name": "image_arrays:0",
-          "shape": [1, imageTmp.height, imageTmp.width, 3],
+          "shape": [1, image.height, image.width, 3],
           "datatype": "UINT8",
-          "parameters": {
-            "binary_data_size": hex.length
-          }
+          "data": decodeBytes
         }
       ],
 
@@ -123,57 +126,8 @@ class _DetectDetailState extends State<DetectDetail> {
 
     var response = await http.post(
         Uri.parse(url),
-        headers: {
-          'Inference-Header-Content-Length': '${body.length}',
-          'Accept': '*/*'
-        },
-        body: body + hex
+        body: body
     );
-
-    //
-    // // setState(() => isComplete = false);
-
-    // var request = http.MultipartRequest(
-    //     'POST',
-    //     Uri.parse(url)
-    // );
-    // //
-    // // // // 보낼 것 세팅
-    // request.headers.addAll({ 'Inference-Header-Content-Length': '${_image!.readAsBytesSync().length}'});
-    // request.headers.addAll({ 'Content-Type': 'application/x-www-form-urlencoded' });
-    // request.headers.addAll({ 'Accept': '*/*'});
-    //
-    // request.fields.addAll({
-    //   "inputs": jsonEncode([
-    //     {
-    //       "name": "image_arrays:0",
-    //       "shape": [1, imageTmp.height, imageTmp.width, 3],
-    //       "datatype": "UINT8"
-    //     }
-    //   ])
-    // });
-    //
-    // request.fields.addAll({
-    //   "parameter": jsonEncode({
-    //     "binary_data_output": false
-    //   })
-    // });
-
-    // request.files.add(
-    //   await http.MultipartFile
-    //     .fromBytes(
-    //       'files',
-    //       _image!.readAsBytesSync(),
-    //       filename: _image!.path.split('/').last
-    //   ),
-    // );
-
-    // String base64Image = base64Encode(await File(widget.imagePath).readAsBytesSync());
-
-    // print(request.fields);
-
-    // var response = await request.send();
-    // print(await response.stream.transform(utf8.decoder).join());
 
     print(response.body);
 
@@ -181,18 +135,15 @@ class _DetectDetailState extends State<DetectDetail> {
     List<List> boxData = [];
 
     for (var i=0;i<((predict.length)/7).toInt();i++) {
-      boxData.add(predict.sublist(0, 7));
+      boxData.add(predict.sublist(0 + (i * 7), 7 + (i * 7)));
     }
 
     for (var i in boxData) {
-      if (i[5] < 0.1) break;
+      if (i[5] < 0.3) break;
       print('좌표: ${i.sublist(1, 5)}');
-      print('정확도: ${i[1]}');
-      print('클래스 인덱스: ${i[2]}');
+      print('정확도: ${i[5]}');
+      print('클래스 인덱스: ${i[6]}');
     }
-
-    // setState(() => isComplete = true);
-    // setState(() => isImage = true);
   }
 
   Future<File> saveAndLoadDetectImage(String path, crop.Image data) async {
@@ -210,15 +161,12 @@ class _DetectDetailState extends State<DetectDetail> {
     double imageWidth = renderBox!.size.width;
     double imageHeight = renderBox!.size.height;
 
-    print(imageWidth);
-    print(imageHeight);
-    print(points);
-
     var tmpPath = extDir!.path + '/MyApp/tmp.png';
 
     crop.Image? image = await crop.decodeImage(bytes);
     image = await crop.copyResize(image!, width: (imageWidth).toInt(), height: (imageHeight).toInt());
     crop.Image cropped = await crop.copyCrop(image, (points['x']*imageWidth).toInt(), (points['y']*imageHeight).toInt(), (points['w']*imageWidth).toInt(), (points['h']*imageHeight).toInt());
+
 
     File? croppedImage = await saveAndLoadDetectImage(tmpPath, cropped);
 
@@ -296,7 +244,8 @@ class _DetectDetailState extends State<DetectDetail> {
             contentPadding: const EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 6.0),
             leading: Icon(Icons.food_bank),
             title: Text('${detects[idx]['class']}'),
-            onTap: () => showDetailDetection(detects[idx]),
+            // onTap: () => showDetailDetection(detects[idx]),
+            onTap: () => detectAction()
           );
         }).toList();
 
