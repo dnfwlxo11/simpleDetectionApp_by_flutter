@@ -28,7 +28,40 @@ class _DetectDetailState extends State<DetectDetail> {
   PanelController pc = new PanelController();
   File? _image;
 
-  var detectSample = [];
+  var detectSample = [
+    {
+      'class': '사람',
+      'x': 0.0,
+      'y': 0.0,
+      'w': 0.25,
+      'h': 0.25,
+    },
+
+    {
+      'class': '동물',
+      'x': 0.25,
+      'y': 0.25,
+      'w': 0.25,
+      'h': 0.25,
+    },
+
+    {
+      'class': '자동차',
+      'x': 0.5,
+      'y': 0.5,
+      'w': 0.25,
+      'h': 0.25,
+    },
+
+    {
+      'class': '자동차',
+      'x': 0.75,
+      'y': 0.75,
+      'w': 0.25,
+      'h': 0.25,
+    }
+  ];
+  List boxData = [];
 
   @override
   void initState() {
@@ -53,87 +86,6 @@ class _DetectDetailState extends State<DetectDetail> {
     super.dispose();
   }
 
-  void addPredict() {
-    setState(() {
-      detectSample.add({
-        'class': '사람',
-        'x': 0.0,
-        'y': 0.0,
-        'w': 0.25,
-        'h': 0.25,
-      });
-
-      detectSample.add({
-        'class': '동물',
-        'x': 0.25,
-        'y': 0.25,
-        'w': 0.25,
-        'h': 0.25,
-      });
-
-      detectSample.add({
-        'class': '자동차',
-        'x': 0.5,
-        'y': 0.5,
-        'w': 0.25,
-        'h': 0.25,
-      });
-
-      detectSample.add({
-        'class': '콜라',
-        'x': 0.75,
-        'y': 0.75,
-        'w': 0.25,
-        'h': 0.25,
-      });
-    });
-  }
-
-  void detectAction() async {
-    String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
-
-    var bytes = _image!.readAsBytesSync().buffer.asUint8List();
-
-    crop.Image? image = await crop.decodeImage(bytes);
-    var decodeBytes = image!.getBytes(format: crop.Format.rgb);
-
-    var body = jsonEncode({
-      "inputs": [
-        {
-          "name": "image_arrays:0",
-          "shape": [1, image.height, image.width, 3],
-          "datatype": "UINT8",
-          "data": decodeBytes
-        }
-      ],
-
-      "parameters":{
-        "binary_data_output": false
-      }
-    });
-
-    var response = await http.post(
-        Uri.parse(url),
-        body: body
-    );
-
-    print(response.body);
-
-    var predict = json.decode(response.body)['outputs'][0]['data'];
-    List<List> boxData = [];
-
-    for (var i=0;i<((predict.length)/7).toInt();i++) {
-      boxData.add(predict.sublist(0 + (i * 7), 7 + (i * 7)));
-    }
-
-    for (var i in boxData) {
-      if (i[5] < 0.3) break;
-      print('좌표: ${i.sublist(1, 5)}');
-      print('정확도: ${i[5]}');
-      print('클래스 인덱스: ${i[6]}');
-    }
-  }
-
   Future<File> saveAndLoadDetectImage(String path, crop.Image data) async {
     new FileImage(File(path)).evict();
     new File(path).writeAsBytesSync(crop.encodePng(data));
@@ -143,7 +95,6 @@ class _DetectDetailState extends State<DetectDetail> {
 
   void showDetailDetection(points) async {
     var bytes = _image!.readAsBytesSync();
-    var realImage = await decodeImageFromList(bytes);
     final extDir = await getExternalStorageDirectory();
 
     double imageWidth = renderBox!.size.width;
@@ -189,8 +140,6 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   List<Widget> generateRect(points) {
-
-
     return List.generate(points.length, (idx) {
       return new Positioned(
         left: (points[idx]['x']*detectImgWidth),
@@ -229,14 +178,12 @@ class _DetectDetailState extends State<DetectDetail> {
   @override
   Widget build(BuildContext context) {
     Widget detectList(detects) {
-      addPredict();
       List<Widget> detectListTile = List.generate(detects.length, (idx) {
           return ListTile(
             contentPadding: const EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 6.0),
             leading: Icon(Icons.food_bank),
             title: Text('${detects[idx]['class']}'),
-            // onTap: () => showDetailDetection(detects[idx]),
-            onTap: () => addPredict(),
+            onTap: () => showDetailDetection(detects[idx]),
           );
         }).toList();
 

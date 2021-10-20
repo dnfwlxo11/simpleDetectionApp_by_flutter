@@ -1,7 +1,10 @@
+import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,6 +25,7 @@ class _CameraState extends State<Camera> {
   var _saveImage;
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
+  var labelMap;
 
   void _cameraInit() async {
     final cameras = await availableCameras();
@@ -39,11 +43,16 @@ class _CameraState extends State<Camera> {
 
   @override
   void initState() {
-    // TODO: implement initState;
-
-    // 해당 메뉴 시작시 바로 초기화
-    _cameraInit();
     super.initState();
+    _cameraInit();
+    getLabelMap();
+  }
+
+  getLabelMap() async {
+    var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
+    log(tmp.toString());
+    log('json');
+    setState(() => labelMap = tmp);
   }
 
   @override

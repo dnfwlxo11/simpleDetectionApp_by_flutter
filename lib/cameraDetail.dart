@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
@@ -16,25 +17,34 @@ class CameraDetail extends StatefulWidget {
 }
 
 class _CameraDetailState extends State<CameraDetail> {
-  String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
   bool isComplete = true;
-  bool isImage = false;
+  bool isDetect = false;
   File? _image;
+  RenderBox? renderBox;
+  double detectImgWidth = 0.0;
+  double detectImgHeight = 0.0;
   var labelMap;
+
+  List boxData = [];
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    print(widget.imagePath);
     getLabelMap();
-    print(labelMap);
     setState(() { _image = File(widget.imagePath); });
-
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
+      setState(() {
+        renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
+        detectImgWidth = renderBox!.size.width;
+        detectImgHeight = renderBox!.size.height;
+      });
+    });
   }
 
   getLabelMap() async {
-    return rootBundle.loadString('assets/labelMap.json')
-    .then((jsonStr) => jsonDecode(jsonStr));
+    var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
+    setState(() => labelMap = tmp);
   }
 
   @override
@@ -51,7 +61,41 @@ class _CameraDetailState extends State<CameraDetail> {
     );
   }
 
+  List<Widget> generateRect(points) {
+    return List.generate(points.length, (idx) {
+      return new Positioned(
+        left: (points[idx]['x']*detectImgWidth),
+        top: (points[idx]['y']*detectImgHeight),
+        child: Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.all(7),
+              child: Text(
+                '${labelMap['${points[idx]['class']}']}',
+                style: TextStyle(fontSize: 20),
+              ),
+              color: Colors.blue,
+            ),
+            Container(
+              width: (points[idx]['w']*detectImgWidth),
+              height: (points[idx]['h']*detectImgHeight),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  width: 2,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
   void detectAction() async {
+    setState(() => isComplete = false);
+    setState(() => isDetect = false);
+
     String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
 
     var bytes = _image!.readAsBytesSync().buffer.asUint8List();
@@ -79,29 +123,38 @@ class _CameraDetailState extends State<CameraDetail> {
         body: body
     );
 
-    print(response.body);
-
     var predict = json.decode(response.body)['outputs'][0]['data'];
-    List<List> boxData = [];
+    setState(() => boxData = []);
 
     for (var i=0;i<((predict.length)/7).toInt();i++) {
-      boxData.add(predict.sublist(0 + (i * 7), 7 + (i * 7)));
+      var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
+      log(predictArr.toString());
+      if (predictArr[5] < 0.3) break;
+      setState(() {
+        boxData.add({
+          'class': predictArr[6].toInt(),
+          'x': predictArr[2] / image.width,
+          'y': predictArr[1] / image.height,
+          'w': (predictArr[4] - predictArr[2]) / image.width,
+          'h': (predictArr[3] - predictArr[1]) / image.height,
+        });
+      });
     }
 
-    String result = '';
-    for (var i in boxData) {
-      if (i[5] < 0.3) break;
-      result += '좌표: ${i.sublist(1, 5)} / 정확도: ${i[5]} / 클래스 인덱스: ${i[6]} \n';
-    }
+    setState(() => isDetect = true);
+    setState(() => isComplete = true);
+  }
 
-    showToast(result);
+  void backwardPage() {
+    Navigator.pop(context);
   }
 
   void saveAction() async {
     showToast('이미지 저장');
-
-    setState(() => isImage = false);
+    setState(() => isDetect = false);
   }
+
+  GlobalKey imageBox = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -109,17 +162,40 @@ class _CameraDetailState extends State<CameraDetail> {
         appBar: AppBar(title: Text('촬영한 이미지보기')),
         body: Stack(
           children: [
-            Image.file(File(widget.imagePath)),
+            Container(
+              key: imageBox,
+              child: AspectRatio(
+                aspectRatio: 3.0 / 4.0,
+                child: Image.file(_image!, fit: BoxFit.fill),
+              ),
+            ),
             isComplete ?
-              Positioned(
-                bottom: 40,
-                right: 10,
-                child: RaisedButton(
-                  color: Colors.lightBlue,
-                  onPressed: isImage ? saveAction : detectAction,
-                  child: isImage ? Text('저장하기') : Text('디텍팅하기'),
-                ),
-              ) : CircularProgressIndicator()
+            Positioned(
+              bottom: 40,
+              right: 10,
+              child: Row(
+                children: [
+                  RaisedButton(
+                      color: Colors.lightBlue,
+                      onPressed: backwardPage,
+                      child: Text('다시찍기')
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  isDetect ? RaisedButton(
+                      color: Colors.lightBlue,
+                      onPressed: detectAction,
+                      child: Text('저장하기')
+                  ) : RaisedButton(
+                      color: Colors.lightBlue,
+                      onPressed: detectAction,
+                      child: Text('디텍팅하기')
+                  ),
+                ],
+              ),
+            ) : CircularProgressIndicator(),
+            if (renderBox != null) ...generateRect(boxData),
           ],
         )
     );

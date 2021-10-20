@@ -48,7 +48,7 @@ dependencies:
   image: ^3.0.8
   dio: ^4.0.0
   opencv: ^1.0.4
-#  permission_handler: ^8.0.0 # complie version 30
+  mysql1: ^0.19.2
 
 dev_dependencies:
   flutter_test:
@@ -74,12 +74,6 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - img1.png
-    - img2.png
-    - img3.png
-    - img4.png
-    - test1.jpg
-    - test2.jpg
     - labelMap.json
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

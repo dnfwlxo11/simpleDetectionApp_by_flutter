@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:simple_detection_app/home.dart';
 import 'package:simple_detection_app/gallery.dart';
 import 'package:simple_detection_app/camera.dart';
-// import 'package:permission_handler/permission_handler.dart';
 
 
 void main() {
