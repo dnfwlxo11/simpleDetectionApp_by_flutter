@@ -50,8 +50,6 @@ class _CameraState extends State<Camera> {
 
   getLabelMap() async {
     var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
-    log(tmp.toString());
-    log('json');
     setState(() => labelMap = tmp);
   }
 

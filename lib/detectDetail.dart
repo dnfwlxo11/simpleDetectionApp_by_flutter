@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui';
 
+import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as crop;
+import 'package:mysql1/mysql1.dart';
 
 class DetectDetail extends StatefulWidget {
   final imgData;
@@ -19,6 +22,9 @@ class DetectDetail extends StatefulWidget {
 }
 
 class _DetectDetailState extends State<DetectDetail> {
+  var conn;
+  var labelMap;
+
   RenderBox? renderBox;
   double detectImgWidth = 0.0;
   double detectImgHeight = 0.0;
@@ -28,47 +34,14 @@ class _DetectDetailState extends State<DetectDetail> {
   PanelController pc = new PanelController();
   File? _image;
 
-  var detectSample = [
-    {
-      'class': '사람',
-      'x': 0.0,
-      'y': 0.0,
-      'w': 0.25,
-      'h': 0.25,
-    },
-
-    {
-      'class': '동물',
-      'x': 0.25,
-      'y': 0.25,
-      'w': 0.25,
-      'h': 0.25,
-    },
-
-    {
-      'class': '자동차',
-      'x': 0.5,
-      'y': 0.5,
-      'w': 0.25,
-      'h': 0.25,
-    },
-
-    {
-      'class': '자동차',
-      'x': 0.75,
-      'y': 0.75,
-      'w': 0.25,
-      'h': 0.25,
-    }
-  ];
   List boxData = [];
 
   @override
   void initState() {
     super.initState();
 
+    initDb();
     setState(() { _image = widget.imgData; });
-    // final RenderBox renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       setState(() {
         renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
@@ -77,6 +50,31 @@ class _DetectDetailState extends State<DetectDetail> {
         isLoaded = true;
       });
     });
+    getLabelMap();
+  }
+
+  void getLabelMap() async {
+    var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
+    setState(() => labelMap = tmp);
+  }
+
+  void initDb() async {
+    var mysqlSetting = new ConnectionSettings(
+        host: '192.168.0.106',
+        port: 3306,
+        user: 'root',
+        password: '1234#',
+        db: 'detection'
+    );
+
+    conn = await MySqlConnection.connect(mysqlSetting);
+    getDetectBox();
+  }
+
+  void getDetectBox() async {
+    var results = (await conn.query('SELECT position FROM images where img_path = ?', ['${_image!.path}'])).toList();
+    setState(() => boxData = jsonDecode(results[0]['position']).map((e) => jsonDecode(e)).toList());
+    print(boxData);
   }
 
   @override
@@ -138,7 +136,7 @@ class _DetectDetailState extends State<DetectDetail> {
             Container(
               padding: EdgeInsets.all(7),
               child: Text(
-                '${points[idx]['class']}',
+                '${labelMap['${points[idx]['class']}']}',
                 style: TextStyle(fontSize: 20),
               ),
               color: Colors.blue,
@@ -171,7 +169,7 @@ class _DetectDetailState extends State<DetectDetail> {
           return ListTile(
             contentPadding: const EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 6.0),
             leading: Icon(Icons.food_bank),
-            title: Text('${detects[idx]['class']}'),
+            title: Text('${labelMap['${detects[idx]['class']}']}'),
             onTap: () => showDetailDetection(detects[idx]),
           );
         }).toList();
@@ -230,7 +228,7 @@ class _DetectDetailState extends State<DetectDetail> {
               child: Image.file(_image!, fit: BoxFit.fill),
             ),
           ),
-          if (renderBox != null) ...generateRect(detectSample),
+          if (renderBox != null) ...generateRect(boxData),
         ],
       );
     }
@@ -248,7 +246,7 @@ class _DetectDetailState extends State<DetectDetail> {
 
         // collapsed: collapseWidget(),
 
-        panel: detectList(detectSample),
+        panel: detectList(boxData),
         body: bodyWidget(),
       ),
     );

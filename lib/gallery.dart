@@ -38,7 +38,6 @@ class _GalleryState extends State<Gallery> {
 
     List<FileSystemEntity> _files = files.listSync();
 
-    print(_files);
     isLoading = false;
     setState(() { imgList = _files; });
   }

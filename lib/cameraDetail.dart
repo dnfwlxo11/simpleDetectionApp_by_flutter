@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as crop;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:mysql1/mysql1.dart';
 
 class CameraDetail extends StatefulWidget {
   final String imagePath;
@@ -17,6 +17,8 @@ class CameraDetail extends StatefulWidget {
 }
 
 class _CameraDetailState extends State<CameraDetail> {
+  var conn;
+
   bool isComplete = true;
   bool isDetect = false;
   File? _image;
@@ -27,10 +29,23 @@ class _CameraDetailState extends State<CameraDetail> {
 
   List boxData = [];
 
+  void initDb() async {
+    var mysqlSetting = new ConnectionSettings(
+        host: '192.168.0.106',
+        port: 3306,
+        user: 'root',
+        password: '1234#',
+        db: 'detection'
+    );
+
+    setState(() async => conn = await MySqlConnection.connect(mysqlSetting));
+  }
+
   @override
   void initState() {
     super.initState();
     print(widget.imagePath);
+    initDb();
     getLabelMap();
     setState(() { _image = File(widget.imagePath); });
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
@@ -42,7 +57,7 @@ class _CameraDetailState extends State<CameraDetail> {
     });
   }
 
-  getLabelMap() async {
+  void getLabelMap() async {
     var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
     setState(() => labelMap = tmp);
   }
@@ -128,7 +143,6 @@ class _CameraDetailState extends State<CameraDetail> {
 
     for (var i=0;i<((predict.length)/7).toInt();i++) {
       var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
-      log(predictArr.toString());
       if (predictArr[5] < 0.3) break;
       setState(() {
         boxData.add({
@@ -150,7 +164,17 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void saveAction() async {
+
     showToast('이미지 저장');
+
+    var tmpBox = [];
+    for (var i in boxData) {
+      tmpBox.add(jsonEncode(i));
+    }
+
+    var results = await conn.query('INSERT INTO images (img_path, position) VALUES (?, ?)', ['${_image!.path}', '${jsonEncode(tmpBox)}']);
+    print(results);
+
     setState(() => isDetect = false);
   }
 
@@ -169,6 +193,7 @@ class _CameraDetailState extends State<CameraDetail> {
                 child: Image.file(_image!, fit: BoxFit.fill),
               ),
             ),
+            if (renderBox != null) ...generateRect(boxData),
             isComplete ?
             Positioned(
               bottom: 40,
@@ -185,7 +210,7 @@ class _CameraDetailState extends State<CameraDetail> {
                   ),
                   isDetect ? RaisedButton(
                       color: Colors.lightBlue,
-                      onPressed: detectAction,
+                      onPressed: saveAction,
                       child: Text('저장하기')
                   ) : RaisedButton(
                       color: Colors.lightBlue,
@@ -195,7 +220,6 @@ class _CameraDetailState extends State<CameraDetail> {
                 ],
               ),
             ) : CircularProgressIndicator(),
-            if (renderBox != null) ...generateRect(boxData),
           ],
         )
     );
