@@ -86,13 +86,6 @@ class _DetectDetailState extends State<DetectDetail> {
     super.dispose();
   }
 
-  Future<File> saveAndLoadDetectImage(String path, crop.Image data) async {
-    new FileImage(File(path)).evict();
-    new File(path).writeAsBytesSync(crop.encodePng(data));
-
-    return File(path);
-  }
-
   void showDetailDetection(points) async {
     var bytes = _image!.readAsBytesSync();
     final extDir = await getExternalStorageDirectory();
@@ -103,11 +96,7 @@ class _DetectDetailState extends State<DetectDetail> {
     var tmpPath = extDir!.path + '/MyApp/tmp.png';
 
     crop.Image? image = await crop.decodeImage(bytes);
-    image = await crop.copyResize(image!, width: (imageWidth).toInt(), height: (imageHeight).toInt());
-    crop.Image cropped = await crop.copyCrop(image, (points['x']*imageWidth).toInt(), (points['y']*imageHeight).toInt(), (points['w']*imageWidth).toInt(), (points['h']*imageHeight).toInt());
-
-
-    File? croppedImage = await saveAndLoadDetectImage(tmpPath, cropped);
+    crop.Image cropped = await crop.copyCrop(image!, (points['x']*image.width).toInt(), (points['y']*image.height).toInt(), (points['w']*image.width).toInt(), (points['h']*image.height).toInt());
 
     showDialog(
         context: context,
@@ -119,8 +108,8 @@ class _DetectDetailState extends State<DetectDetail> {
               children: [
                 AspectRatio(
                   aspectRatio: 3.0 / 4.0,
-                  child: Image.file(
-                    croppedImage,
+                  child: Image.memory(
+                    Uint8List.fromList(crop.encodePng(cropped)),
                     fit: BoxFit.fill,
                   ),
                 ),
