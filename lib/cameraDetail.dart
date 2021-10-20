@@ -44,7 +44,6 @@ class _CameraDetailState extends State<CameraDetail> {
   @override
   void initState() {
     super.initState();
-    print(widget.imagePath);
     initDb();
     getLabelMap();
     setState(() { _image = File(widget.imagePath); });
@@ -87,7 +86,7 @@ class _CameraDetailState extends State<CameraDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 20, color: Colors.white),
               ),
               color: Colors.blue,
             ),
@@ -173,7 +172,6 @@ class _CameraDetailState extends State<CameraDetail> {
     }
 
     var results = await conn.query('INSERT INTO images (img_path, position) VALUES (?, ?)', ['${_image!.path}', '${jsonEncode(tmpBox)}']);
-    print(results);
 
     setState(() => isDetect = false);
   }

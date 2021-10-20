@@ -74,7 +74,6 @@ class _DetectDetailState extends State<DetectDetail> {
   void getDetectBox() async {
     var results = (await conn.query('SELECT position FROM images where img_path = ?', ['${_image!.path}'])).toList();
     setState(() => boxData = jsonDecode(results[0]['position']).map((e) => jsonDecode(e)).toList());
-    print(boxData);
   }
 
   @override
@@ -85,13 +84,9 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   void showDetailDetection(points) async {
+    print('부른다');
+
     var bytes = _image!.readAsBytesSync();
-    final extDir = await getExternalStorageDirectory();
-
-    double imageWidth = renderBox!.size.width;
-    double imageHeight = renderBox!.size.height;
-
-    var tmpPath = extDir!.path + '/MyApp/tmp.png';
 
     crop.Image? image = await crop.decodeImage(bytes);
     crop.Image cropped = await crop.copyCrop(image!, (points['x']*image.width).toInt(), (points['y']*image.height).toInt(), (points['w']*image.width).toInt(), (points['h']*image.height).toInt());
@@ -100,7 +95,7 @@ class _DetectDetailState extends State<DetectDetail> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: new Text(points['class']),
+            title: new Text(labelMap['${points['class']}']),
             content: new Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -137,7 +132,7 @@ class _DetectDetailState extends State<DetectDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
-                style: TextStyle(fontSize: 20),
+                style: TextStyle(fontSize: 20, color: Colors.white),
               ),
               color: Colors.blue,
             ),
@@ -152,7 +147,7 @@ class _DetectDetailState extends State<DetectDetail> {
                   ),
                 ),
               ),
-              onTap: () => showDetailDetection(points[idx]),
+              // onTap: () => showDetailDetection(points[idx]),
             ),
           ],
         ),
@@ -164,20 +159,44 @@ class _DetectDetailState extends State<DetectDetail> {
 
   @override
   Widget build(BuildContext context) {
-    Widget detectList(detects) {
-      List<Widget> detectListTile = List.generate(detects.length, (idx) {
-          return ListTile(
-            contentPadding: const EdgeInsets.fromLTRB(12.0, 12.0, 6.0, 6.0),
+    List<Widget> detectListTile(detects) {
+      return [
+        Container(
+          padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 18.0),
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
+          ),
+          child: Column(
+            children: [
+              Center(
+                child: Icon(Icons.keyboard_arrow_up, size: 40, color: Colors.white,),
+              ),
+              Text(
+                "분석 결과",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ],
+          ),
+        ),
+        ...List.generate(detects.length, (idx) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(0.0, 18.0, 0.0, 18.0),
+          child: ListTile(
             leading: Icon(Icons.food_bank),
             title: Text('${labelMap['${detects[idx]['class']}']}'),
             onTap: () => showDetailDetection(detects[idx]),
-          );
-        }).toList();
+          ),
+        );
+      }).toList()
+      ];
+    }
 
+    Widget detectList(detects, ScrollController sc) {
       return Container(
         decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(24.0)),
+            borderRadius: BorderRadius.all(Radius.circular(18.0)),
             boxShadow: [
               BoxShadow(
                 blurRadius: 20.0,
@@ -185,35 +204,16 @@ class _DetectDetailState extends State<DetectDetail> {
               ),
             ]
         ),
-        margin: const EdgeInsets.all(24.0),
-        child: Container(
-            child: ListView(
-              controller: sc,
-              children: ListTile.divideTiles(
-                  context: context,
-                  tiles: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 12.0),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(24.0), topRight: Radius.circular(24.0)),
-                      ),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: Icon(Icons.keyboard_arrow_up, size: 40, color: Colors.white,),
-                          ),
-                          Text(
-                            "분석 결과",
-                            style: TextStyle(color: Colors.white, fontSize: 20),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ...detectListTile
-                  ]
-              ).toList(),
-            )
+        margin: const EdgeInsets.all(18.0),
+        child: ListView(
+          controller: sc,
+          children: ListTile.divideTiles(
+              context: context,
+              tiles: <Widget>[
+
+                ...detectListTile(detects)
+              ]
+          ).toList(),
         ),
       );
     }
@@ -233,20 +233,43 @@ class _DetectDetailState extends State<DetectDetail> {
       );
     }
 
+    Widget collapseWidget() {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
+        ),
+        margin: const EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0.0),
+        child: Column(
+          children: [
+            Expanded(
+                child: Center(
+                  child: Icon(Icons.keyboard_arrow_up, size: 40, color: Colors.white,),
+                ),
+            ),
+            Expanded(
+              child: Text(
+                "분석 결과",
+                style: TextStyle(color: Colors.white, fontSize: 20),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset : false,
       appBar: AppBar(title: Text('자세히 보기')),
       body: SlidingUpPanel(
+        backdropEnabled: true,
         controller: pc,
         renderPanelSheet: false,
-        borderRadius:  BorderRadius.only(
-            topLeft: Radius.circular(24.0),
-            topRight: Radius.circular(24.0)
-        ),
+        borderRadius:  BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
 
-        // collapsed: collapseWidget(),
+        collapsed: collapseWidget(),
 
-        panel: detectList(boxData),
+        panelBuilder: (sc) => detectList(boxData, sc),
         body: bodyWidget(),
       ),
     );
