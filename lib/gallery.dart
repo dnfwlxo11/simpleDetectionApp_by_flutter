@@ -97,7 +97,7 @@ class _GalleryState extends State<Gallery> {
                           padding: EdgeInsets.only(right: 10, top: 10),
                           child: Icon(
                               Icons.delete,
-                              color: const Color(0xff5f6062),
+                              color: Colors.white,
                               size: 30
                           ),
                         )

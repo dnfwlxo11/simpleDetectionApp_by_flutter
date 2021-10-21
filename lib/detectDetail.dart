@@ -208,7 +208,7 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget detectList(detects, ScrollController sc) {
       return Container(
         decoration: BoxDecoration(
-            color: const Color(0xff5f6062),
+            color: Colors.white,
             borderRadius: BorderRadius.all(Radius.circular(18.0)),
             boxShadow: [
               BoxShadow(
