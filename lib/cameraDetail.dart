@@ -186,10 +186,9 @@ class _CameraDetailState extends State<CameraDetail> {
           children: [
             Container(
               key: imageBox,
-              child: AspectRatio(
-                aspectRatio: 3.0 / 4.0,
-                child: Image.file(_image!, fit: BoxFit.fill),
-              ),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: Image.file(_image!, fit: BoxFit.fill),
             ),
             if (renderBox != null) ...generateRect(boxData),
             isComplete ?

@@ -90,6 +90,7 @@ class _DetectDetailState extends State<DetectDetail> {
 
     crop.Image? image = await crop.decodeImage(bytes);
     crop.Image cropped = await crop.copyCrop(image!, (points['x']*image.width).toInt(), (points['y']*image.height).toInt(), (points['w']*image.width).toInt(), (points['h']*image.height).toInt());
+    var imageSize = cropped.width + cropped.height;
 
     showDialog(
         context: context,
@@ -99,11 +100,16 @@ class _DetectDetailState extends State<DetectDetail> {
             content: new Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                AspectRatio(
-                  aspectRatio: 3.0 / 4.0,
-                  child: Image.memory(
-                    Uint8List.fromList(crop.encodePng(cropped)),
-                    fit: BoxFit.fill,
+                ConstrainedBox(
+                  constraints: new BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.6,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: (cropped.width / imageSize) / (cropped.height / imageSize),
+                    child: Image.memory(
+                      Uint8List.fromList(crop.encodePng(cropped)),
+                      fit: BoxFit.fill,
+                    ),
                   ),
                 ),
               ],
