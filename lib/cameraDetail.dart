@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as crop;
@@ -77,7 +79,7 @@ class _CameraDetailState extends State<CameraDetail> {
   void showToast(String message) {
     Fluttertoast.showToast(
         msg: message,
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: const Color(0xffe8e0fe),
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM
     );
@@ -94,9 +96,9 @@ class _CameraDetailState extends State<CameraDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
-                style: TextStyle(fontSize: 20, color: Colors.white),
+                style: TextStyle(fontSize: 20, color: const Color(0xff5f6062)),
               ),
-              color: Colors.blue,
+              color: const Color(0xffe8e0fe),
             ),
             Container(
               width: (points[idx]['w']*detectImgWidth),
@@ -104,7 +106,7 @@ class _CameraDetailState extends State<CameraDetail> {
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 2,
-                  color: Colors.blue,
+                  color: const Color(0xffe8e0fe),
                 ),
               ),
             ),
@@ -194,7 +196,13 @@ class _CameraDetailState extends State<CameraDetail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('촬영한 이미지보기')),
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+            color: const Color(0xff5f6062)
+          ),
+          backgroundColor: const Color(0xffe8e0fe),
+          title: Text('미리보기', style: TextStyle(color: const Color(0xff5f6062), fontWeight: FontWeight.bold, fontSize: 20)),
+        ),
         body: Stack(
           children: [
             Container(
@@ -204,28 +212,28 @@ class _CameraDetailState extends State<CameraDetail> {
               child: Image.file(_image!, fit: BoxFit.fill),
             ),
             if (renderBox != null) ...generateRect(boxData),
-            isComplete ?
-            Positioned(
-              bottom: 40,
-              right: 10,
+            isComplete ? Container(
+              padding: EdgeInsets.only(bottom: 50),
+              alignment: Alignment.bottomCenter,
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   RaisedButton(
-                      color: Colors.lightBlue,
+                      color: const Color(0xffe8e0fe),
                       onPressed: backwardPage,
-                      child: Text('다시찍기')
+                      child: Text('다시찍기', style: TextStyle(color: const Color(0xff5f6062), fontWeight: FontWeight.bold))
                   ),
                   SizedBox(
                     width: 10,
                   ),
                   isDetect ? RaisedButton(
-                      color: Colors.lightBlue,
+                      color: const Color(0xffe8e0fe),
                       onPressed: saveAction,
-                      child: Text('저장하기')
+                      child: Text('저장하기', style: TextStyle(color: const Color(0xff5f6062), fontWeight: FontWeight.bold))
                   ) : RaisedButton(
-                      color: Colors.lightBlue,
+                      color: const Color(0xffe8e0fe),
                       onPressed: detectAction,
-                      child: Text('디텍팅하기')
+                      child: Text('디텍팅하기', style: TextStyle(color:  const Color(0xff5f6062), fontWeight: FontWeight.bold))
                   ),
                 ],
               ),

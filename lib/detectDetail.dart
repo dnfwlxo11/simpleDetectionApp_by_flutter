@@ -137,9 +137,9 @@ class _DetectDetailState extends State<DetectDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
-                style: TextStyle(fontSize: 20, color: Colors.white),
+                style: TextStyle(fontSize: 20, color: const Color(0xff5f6062)),
               ),
-              color: Colors.blue,
+              color: const Color(0xffe8e0fe),
             ),
             InkWell(
               child: Container(
@@ -148,7 +148,7 @@ class _DetectDetailState extends State<DetectDetail> {
                 decoration: BoxDecoration(
                   border: Border.all(
                     width: 2,
-                    color: Colors.blue,
+                    color: const Color(0xffe8e0fe),
                   ),
                 ),
               ),
@@ -169,22 +169,22 @@ class _DetectDetailState extends State<DetectDetail> {
         Container(
           padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 18.0),
           decoration: BoxDecoration(
-            color: const Color(0xff7440ee),
+            color: const Color(0xffe8e0fe),
             borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
           ),
           child: Column(
             children: [
               Center(
                 child: Icon(
-                    Icons.keyboard_arrow_up,
-                    size: 40,
-                    color: Colors.white,
+                  Icons.keyboard_arrow_up,
+                  size: 40,
+                  color: const Color(0xff5f6062),
                 ),
               ),
               Text(
                 "분석 결과",
                 style: TextStyle(
-                    color: Colors.white,
+                    color: const Color(0xff5f6062),
                     fontSize: 20,
                     fontWeight: FontWeight.bold
                 ),
@@ -208,7 +208,7 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget detectList(detects, ScrollController sc) {
       return Container(
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xff5f6062),
             borderRadius: BorderRadius.all(Radius.circular(18.0)),
             boxShadow: [
               BoxShadow(
@@ -222,24 +222,23 @@ class _DetectDetailState extends State<DetectDetail> {
           controller: sc,
           children: ListTile.divideTiles(
               context: context,
-              tiles: <Widget>[
-
-                ...detectListTile(detects)
-              ]
+              tiles: detectListTile(detects)
           ).toList(),
         ),
       );
     }
 
     Widget bodyWidget() {
+      var fullHeight = MediaQuery.of(context).size.height;
+      var fullWidth = MediaQuery.of(context).size.width;
+
       return Stack(
         children: <Widget>[
           Container(
             key: imageBox,
-            child: AspectRatio(
-              aspectRatio: 3.0 / 4.0,
-              child: Image.file(_image!, fit: BoxFit.fill),
-            ),
+            height: fullHeight,
+            width: fullWidth,
+            child: Image.file(_image!, fit: BoxFit.fill),
           ),
           if (renderBox != null) ...generateRect(boxData),
         ],
@@ -249,7 +248,7 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget collapseWidget() {
       return Container(
         decoration: BoxDecoration(
-          color: const Color(0xff7440ee),
+          color: const Color(0xffe8e0fe),
           borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
         ),
         margin: const EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0.0),
@@ -257,16 +256,16 @@ class _DetectDetailState extends State<DetectDetail> {
           children: [
             Expanded(
               child: Center(
-                child: Icon(Icons.keyboard_arrow_up, size: 40, color: Colors.white),
+                child: Icon(Icons.keyboard_arrow_up, size: 40, color: const Color(0xff5f6062)),
               ),
             ),
             Expanded(
               child: Text(
                   "분석 결과",
                   style: TextStyle(
-                      color: Colors.white,
+                      color: const Color(0xff5f6062),
                       fontWeight: FontWeight.bold,
-                      fontSize: 18
+                      fontSize: 20
                   )
               ),
             ),
@@ -278,15 +277,18 @@ class _DetectDetailState extends State<DetectDetail> {
     return Scaffold(
       resizeToAvoidBottomInset : false,
       appBar: AppBar(
-        title: Text(
-            '상세보기',
-            style: TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
-                fontSize: 18
-            )
+        iconTheme: IconThemeData(
+            color: const Color(0xff5f6062)
         ),
-        backgroundColor: const Color(0xffffdc7c),
+        title: Text(
+          '상세보기',
+          style: TextStyle(
+            color: const Color(0xff5f6062),
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        backgroundColor: const Color(0xffe8e0fe),
       ),
       body: SlidingUpPanel(
         backdropEnabled: true,

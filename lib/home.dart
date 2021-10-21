@@ -12,17 +12,28 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   var test = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
+  var mainImage;
+  bool isImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      mainImage = Image.asset('assets/mainCard.jpg');
+      isImage = true;
+    });
+  }
 
   List<Widget> someItems() {
     return List.generate(test.length, (index) {
       return Container(
         child: Card(
-            color: const Color(0xffffdc7c),
+            color: const Color(0xffe8e0fe),
             child: Column(
               children: [
                 FlutterLogo(
                   size: 120,
-                  textColor: const Color(0xff7440ee),
+                  textColor: const Color(0xffe8e0fe),
                 ),
                 Text('${index + 1}'),
               ],
@@ -35,7 +46,7 @@ class _HomeState extends State<Home> {
   Widget mainCard() {
     return Card(
         child: Container(
-          child: Image.asset('assets/mainCard.jpg'),
+          child: mainImage,
         )
     );
   }
@@ -61,16 +72,16 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   mainCard(),
-                  Expanded(
+                  isImage ? Expanded(
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: someItems(),
                       )
-                  )
+                  ) : CircularProgressIndicator()
                 ],
-              )
+              ),
           ),
-        )
+        ),
     );
   }
 }

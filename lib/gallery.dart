@@ -74,46 +74,54 @@ class _GalleryState extends State<Gallery> {
   }
 
   Widget itemCard(image) {
-    print(image.statSync());
     return Column(
         children: [
-          Stack(
-            children: [
-                  Image.file(
+          Expanded(
+            flex: 8,
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  child: Image.file(
                     image,
-                    fit: BoxFit.fitHeight,
+                    fit: BoxFit.fill,
                   ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  InkWell(
-                    onTap: () => removeFile(image),
-                    child: Container(
-                      padding: EdgeInsets.only(right: 10, top: 10),
-                      child: Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                          size: 30
-                      ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    InkWell(
+                        onTap: () => removeFile(image),
+                        child: Container(
+                          padding: EdgeInsets.only(right: 10, top: 10),
+                          child: Icon(
+                              Icons.delete,
+                              color: const Color(0xff5f6062),
+                              size: 30
+                          ),
+                        )
                     )
-                  )
-                ],
-              )
-            ],
+                  ],
+                )
+              ],
+            ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('${DateFormat('yy/MM/dd HH:mm:ss').format(image.statSync().accessed)}',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18
-                  )
-              ),
-            ],
-          ),
+          Expanded(
+            flex: 2,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('${DateFormat('yy/MM/dd HH:mm:ss').format(image.statSync().accessed)}',
+                    style: TextStyle(
+                        color: const Color(0xff5f6062),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16
+                    )
+                ),
+              ],
+            ),
+          )
         ]
     );
   }
@@ -121,29 +129,49 @@ class _GalleryState extends State<Gallery> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: GridView.builder(
-            itemCount: imgList.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-            ),
-            itemBuilder: (BuildContext context, int index) {
-              return InkWell(
-                child: Card(
-                  semanticContainer: true,
-                  clipBehavior: Clip.antiAliasWithSaveLayer,
-                  color: const Color(0xffffdc7c),
-                  child: itemCard(imgList[index]),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20.0),
-                  ),
-
+      body: Container(
+          padding: EdgeInsets.only(left: 10, right: 10, top: 30),
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topCenter,
+                child: Text('보관함',
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 40
+                    )
                 ),
-                onTap: () => detailInfo(context, imgList[index]),
-              );
-            }
-        )
+              ),
+              Container(
+                padding: EdgeInsets.only(bottom: 20),
+              ),
+              Expanded(
+                child: GridView.builder(
+                  itemCount: imgList.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    return InkWell(
+                      child: Card(
+                        semanticContainer: true,
+                        clipBehavior: Clip.antiAliasWithSaveLayer,
+                        color: const Color(0xffe8e0fe),
+                        child: itemCard(imgList[index]),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.0),
+                        ),
+                      ),
+                      onTap: () => detailInfo(context, imgList[index]),
+                    );
+                  },
+                ),
+              )
+            ],
+          )
+      ),
     );
   }
 }
