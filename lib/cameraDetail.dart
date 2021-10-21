@@ -6,7 +6,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as crop;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:intl/intl.dart';
 import 'package:mysql1/mysql1.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 class CameraDetail extends StatefulWidget {
   final String imagePath;
@@ -22,6 +25,7 @@ class _CameraDetailState extends State<CameraDetail> {
   bool isComplete = true;
   bool isDetect = false;
   File? _image;
+  List uint8Image = [];
   RenderBox? renderBox;
   double detectImgWidth = 0.0;
   double detectImgHeight = 0.0;
@@ -31,11 +35,11 @@ class _CameraDetailState extends State<CameraDetail> {
 
   void initDb() async {
     var mysqlSetting = new ConnectionSettings(
-        host: '192.168.0.106',
-        port: 3306,
+        host: 'namuintell.iptime.org',
+        port: 16003,
         user: 'root',
-        password: '1234#',
-        db: 'detection'
+        password: 'root',
+        db: 'detections'
     );
 
     setState(() async => conn = await MySqlConnection.connect(mysqlSetting));
@@ -46,7 +50,10 @@ class _CameraDetailState extends State<CameraDetail> {
     super.initState();
     initDb();
     getLabelMap();
-    setState(() { _image = File(widget.imagePath); });
+    print(widget.imagePath);
+    setState(() {
+      _image = File(widget.imagePath);
+    });
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       setState(() {
         renderBox = imageBox.currentContext!.findRenderObject() as RenderBox;
@@ -63,6 +70,7 @@ class _CameraDetailState extends State<CameraDetail> {
 
   @override
   void dispose() {
+    _image!.deleteSync();
     super.dispose();
   }
 
@@ -110,7 +118,7 @@ class _CameraDetailState extends State<CameraDetail> {
     setState(() => isComplete = false);
     setState(() => isDetect = false);
 
-    String url = 'http://192.168.0.106:16000/v2/models/detectionModel/versions/1/infer';
+    String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
 
     var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
@@ -163,15 +171,20 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void saveAction() async {
-
     showToast('이미지 저장');
 
-    var tmpBox = [];
-    for (var i in boxData) {
-      tmpBox.add(jsonEncode(i));
-    }
+    String currTime = DateFormat('yyyyMMddhhmm_ss').format(DateTime.now());
+    var extPath = path.join((await getExternalStorageDirectory())!.path, 'MyApp', '${currTime}_detectSave.png');
 
-    var results = await conn.query('INSERT INTO images (img_path, position) VALUES (?, ?)', ['${_image!.path}', '${jsonEncode(tmpBox)}']);
+    var tmpBox = [];
+    // for (var i in boxData) {
+    //   tmpBox.add(jsonEncode(i));
+    // }
+
+    File file = new File(extPath);
+    file.writeAsBytesSync(_image!.readAsBytesSync());
+
+    var results = await conn.query('INSERT INTO images (img_path, position) VALUES (?, ?)', ['${extPath}', '${jsonEncode(boxData)}']);
 
     setState(() => isDetect = false);
   }

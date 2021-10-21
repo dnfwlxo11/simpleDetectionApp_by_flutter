@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
@@ -74,70 +73,77 @@ class _GalleryState extends State<Gallery> {
     super.dispose();
   }
 
+  Widget itemCard(image) {
+    print(image.statSync());
+    return Column(
+        children: [
+          Stack(
+            children: [
+                  Image.file(
+                    image,
+                    fit: BoxFit.fitHeight,
+                  ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () => removeFile(image),
+                    child: Container(
+                      padding: EdgeInsets.only(right: 10, top: 10),
+                      child: Icon(
+                          Icons.delete,
+                          color: Colors.white,
+                          size: 30
+                      ),
+                    )
+                  )
+                ],
+              )
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('${DateFormat('yy/MM/dd HH:mm:ss').format(image.statSync().accessed)}',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18
+                  )
+              ),
+            ],
+          ),
+        ]
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          // crossAxisCount: 1,
-          children: List.generate(imgList.length, (index) {
-            return Card(
-              semanticContainer: true,
-              clipBehavior: Clip.antiAliasWithSaveLayer,
-              child: InkWell(
-                onTap: () => detailInfo(context, imgList[index]),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: Container(
-                        child: AspectRatio(
-                          aspectRatio: 3.0 / 4.0,
-                          child: Image.file(
-                            imgList[index],
-                            fit: BoxFit.fill,
-                          ),
-                        ),
-                        padding: EdgeInsets.all(10.0),
-                      ),
-                    ),
-                    Spacer(
-                      flex: 1,
-                    ),
-                    Expanded(
-                        flex: 6,
-                        child: Column(
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(3),
-                              child: InkWell(
-                                onTap: () => removeFile(imgList[index]),
-                                child: Icon(Icons.delete),
-                              )
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(3),
-                              child: Text('생성일'),
-                            ),
-                            Padding(
-                              padding: EdgeInsets.all(3),
-                              child: Text('${DateFormat('yyyy년 MM월 dd일 hh시 mm분 ').format(imgList[index].statSync().accessed)}'),
-                            ),
-                          ],
-                        )
-                    )
-                  ],
+        body: GridView.builder(
+            itemCount: imgList.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+            ),
+            itemBuilder: (BuildContext context, int index) {
+              return InkWell(
+                child: Card(
+                  semanticContainer: true,
+                  clipBehavior: Clip.antiAliasWithSaveLayer,
+                  color: const Color(0xffffdc7c),
+                  child: itemCard(imgList[index]),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+
                 ),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              elevation: 3,
-              margin: EdgeInsets.all(10),
-            );
-          }),
-        ),
-      ),
+                onTap: () => detailInfo(context, imgList[index]),
+              );
+            }
+        )
     );
   }
 }

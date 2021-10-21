@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-
+      // theme: new ThemeData(scaffoldBackgroundColor: const Color(0xffffdc7c)),
       home: const HomePage(),
     );
   }
@@ -53,10 +53,6 @@ class _HomePageState extends State<HomePage> {
     Widget child;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text('디텍팅 앱'),
-        backgroundColor: Colors.lightBlue,
-      ),
       body: new PageView(
         controller: _pageController,
         onPageChanged: (newPage) {
@@ -78,15 +74,17 @@ class _HomePageState extends State<HomePage> {
       ),
       bottomNavigationBar: new BottomNavigationBar(
         // type: BottomNavigationBarType.fixed, // 메뉴가 3개 초과할때만 활성화
+        backgroundColor: const Color(0xff7440ee),
+        showUnselectedLabels: false,
         currentIndex: _bottomTabIndex,
         onTap: (int index) {
           setState(() => this._bottomTabIndex = index);
           this._pageController?.animateToPage(index,duration: const Duration(milliseconds: 500),curve: Curves.easeInOut);
         },
         items: <BottomNavigationBarItem>[
-          new BottomNavigationBarItem(icon: Icon(Icons.home), title: Text('홈'),),
-          new BottomNavigationBarItem(icon: Icon(Icons.camera), title: Text('카메라'),),
-          new BottomNavigationBarItem(icon: Icon(Icons.image), title: Text('갤러리'),),
+          new BottomNavigationBarItem(icon: Icon(Icons.home, color: Colors.white), title: Text('홈', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          new BottomNavigationBarItem(icon: Icon(Icons.camera, color: Colors.white), title: Text('카메라', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+          new BottomNavigationBarItem(icon: Icon(Icons.image, color: Colors.white), title: Text('갤러리', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
       ],)
     );
   }

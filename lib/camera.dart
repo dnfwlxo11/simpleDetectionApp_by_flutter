@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -46,6 +47,8 @@ class _CameraState extends State<Camera> {
     super.initState();
     _cameraInit();
     getLabelMap();
+    PaintingBinding.instance!.imageCache!.clear();
+    PaintingBinding.instance!.imageCache!.clearLiveImages();
   }
 
   getLabelMap() async {
@@ -56,6 +59,7 @@ class _CameraState extends State<Camera> {
   @override
   void dispose() {
     // 컨트롤러 해제
+    PaintingBinding.instance!.imageCache!.clear();
     _controller!.dispose();
     super.dispose();
   }
@@ -64,57 +68,69 @@ class _CameraState extends State<Camera> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset : false,
-      body: SingleChildScrollView(
-          child: Stack(
-            children: <Widget>[
-              FutureBuilder<void> (
-                future: _initializeControllerFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return CameraPreview(_controller!);
-                  } else {
-                    return Center(child: CircularProgressIndicator());
-                  }
-                },
-              ),
-              Positioned(
-                bottom: 40,
-                right: 10,
-                child: FloatingActionButton(
-                  child: Icon(Icons.camera_alt),
-                  onPressed: () async {
-                    try {
-                      await _initializeControllerFuture;
+      body: Stack(
+        children: <Widget>[
+          Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: FutureBuilder<void> (
+              future: _initializeControllerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return CameraPreview(_controller!);
+                } else {
+                  return Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          ),
+          Container(
+            height: MediaQuery.of(context).size.height,
+            width: MediaQuery.of(context).size.width,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: EdgeInsets.only(bottom: 20),
+                  child: FloatingActionButton(
+                    backgroundColor: const Color(0xffffdc7c),
+                    child: Icon(Icons.camera_alt, color: Colors.white),
+                    onPressed: () async {
+                      try {
+                        await _initializeControllerFuture;
 
-                      final path = join(
-                        (await getExternalStorageDirectory())!.path,
-                        'MyApp'
-                      );
+                        final path = join(
+                            (await getExternalStorageDirectory())!.path,
+                            'MyApp'
+                        );
 
-                      await Directory(path).create();
-                      String currTime = DateFormat('yyyyMMddhhmm').format(DateTime.now());
+                        await Directory(path).create();
+                        String currTime = DateFormat('yyyyMMddhhmm_ss').format(DateTime.now());
 
-                      XFile picture = await _controller!.takePicture();
-                      picture.saveTo(join(path, '${currTime}Detect.png'));
+                        XFile picture = await _controller!.takePicture();
+                        picture.saveTo(join(path, '${currTime}Detect.png'));
 
-                      // await GallerySaver.saveImage(path, albumName: 'MyApp');
+                        // await GallerySaver.saveImage(path, albumName: 'MyApp');
 
-                      String imagePath = '$path/${currTime}Detect.png';
+                        String imagePath = '$path/${currTime}Detect.png';
 
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CameraDetail(imagePath: imagePath),
-                        ),
-                      );
-                    } catch (e) {
-                      print(e);
-                    }
-                  },
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CameraDetail(imagePath: imagePath),
+                          ),
+                        );
+                      } catch (e) {
+                        print(e);
+                      }
+                    },
+                  ),
                 ),
-              ),
-            ],
-          )
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
