@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -116,23 +117,63 @@ class _CameraDetailState extends State<CameraDetail> {
     });
   }
 
+  List<double> classFilter(List<List<double>> classData) {
+    List<double> classes = [];
+
+    for (var i=0;i<25200;i++) {
+      classes.add(classData[i].reduce(max));
+    }
+
+    return classes;
+  }
+
+  List<List<double>> convert2dArr(List<double> array) {
+    List<List<double>> arr2D = [];
+    for (var i = 0;i<155; i++) {
+      arr2D.add(array.sublist(i*25200, (i+1)*25200));
+    }
+
+    return arr2D;
+  }
+
+  List<List> convertOutput(List<double> outputData) {
+    List<List<double>> arr2D = convert2dArr(outputData);
+
+    // get Boxs
+    List boxes = arr2D.sublist(0, 4);
+
+    // get Scores
+    List scores = arr2D.sublist(4, 5);
+
+    // get classes
+    List<List<double>> classes = arr2D.sublist(5, 155);
+    List classFiltered = classFilter(classes);
+
+    return [boxes, scores, classFiltered];
+  }
+
   void detectAction() async {
     setState(() => isComplete = false);
     setState(() => isDetect = false);
 
     String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
+    // String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
     var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
     crop.Image? image = await crop.decodeImage(bytes);
-    var decodeBytes = image!.getBytes(format: crop.Format.rgb);
+    var resizeImage = crop.copyResize(image!, width: 640, height: 640);
+    var decodeBytes = resizeImage.getBytes(format: crop.Format.rgb);
 
     var body = jsonEncode({
       "inputs": [
         {
           "name": "image_arrays:0",
-          "shape": [1, image.height, image.width, 3],
           "datatype": "UINT8",
+          "shape": [1, resizeImage.height, resizeImage.width, 3],
+          // "name": "images",
+          // "datatype": "FP32",
+          // "shape": [1, 3, resizeImage.height, resizeImage.width],
           "data": decodeBytes
         }
       ],
@@ -148,18 +189,32 @@ class _CameraDetailState extends State<CameraDetail> {
     );
 
     var predict = json.decode(response.body)['outputs'][0]['data'];
-    setState(() => boxData = []);
+    //
+    // var output = convertOutput(predict);
+    // 좌표, 클래스, 점수
 
+    // setState(() => boxData = []);
+    //
+    // String url2 = 'http://namuintell.iptime.org:16004/';
+    // var response2 = await http.post(
+    //   Uri.parse(url2),
+    //   body: jsonEncode(predict)
+    // );
+    //
+    // print(response2.body);
+
+    // print(response2.body);
+    //
     for (var i=0;i<((predict.length)/7).toInt();i++) {
       var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
       if (predictArr[5] < 0.3) break;
       setState(() {
         boxData.add({
           'class': predictArr[6].toInt(),
-          'x': predictArr[2] / image.width,
-          'y': predictArr[1] / image.height,
-          'w': (predictArr[4] - predictArr[2]) / image.width,
-          'h': (predictArr[3] - predictArr[1]) / image.height,
+          'x': predictArr[2] / resizeImage.width,
+          'y': predictArr[1] / resizeImage.height,
+          'w': (predictArr[4] - predictArr[2]) / resizeImage.width,
+          'h': (predictArr[3] - predictArr[1]) / resizeImage.height,
         });
       });
     }
