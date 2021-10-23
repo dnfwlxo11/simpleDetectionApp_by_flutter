@@ -120,10 +120,10 @@ class _CameraDetailState extends State<CameraDetail> {
   List<double> classFilter(List<List<double>> classData) {
     List<double> classes = [];
 
-    for (var i=0;i<25200;i++) {
+    for (var i=0;i<classData.length;i++) {
       classes.add(classData[i].reduce(max));
     }
-
+    
     return classes;
   }
 
@@ -149,6 +149,10 @@ class _CameraDetailState extends State<CameraDetail> {
     List<List<double>> classes = arr2D.sublist(5, 155);
     List classFiltered = classFilter(classes);
 
+    print(boxes.length);
+    print(scores.length);
+    print(classFiltered.length);
+
     return [boxes, scores, classFiltered];
   }
 
@@ -156,8 +160,8 @@ class _CameraDetailState extends State<CameraDetail> {
     setState(() => isComplete = false);
     setState(() => isDetect = false);
 
-    String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
-    // String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
+    // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
+    String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
     var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
@@ -168,12 +172,12 @@ class _CameraDetailState extends State<CameraDetail> {
     var body = jsonEncode({
       "inputs": [
         {
-          "name": "image_arrays:0",
-          "datatype": "UINT8",
-          "shape": [1, resizeImage.height, resizeImage.width, 3],
-          // "name": "images",
-          // "datatype": "FP32",
-          // "shape": [1, 3, resizeImage.height, resizeImage.width],
+          // "name": "image_arrays:0",
+          // "datatype": "UINT8",
+          // "shape": [1, resizeImage.height, resizeImage.width, 3],
+          "name": "images",
+          "datatype": "FP32",
+          "shape": [1, 3, resizeImage.height, resizeImage.width],
           "data": decodeBytes
         }
       ],
@@ -189,12 +193,20 @@ class _CameraDetailState extends State<CameraDetail> {
     );
 
     var predict = json.decode(response.body)['outputs'][0]['data'];
-    //
-    // var output = convertOutput(predict);
-    // 좌표, 클래스, 점수
+
+    var output = convertOutput(predict.cast<double>());
+
+    for (var i=0;i<output[1][0].length;i++) {
+      if (output[1][0][i] >= 0.70 && output[1][0][i] <= 1.0) {
+        print(i);
+        print(output[1][0][i]);
+      };
+    }
+
+    // 좌표, 점수, 클래스
 
     // setState(() => boxData = []);
-    //
+
     // String url2 = 'http://namuintell.iptime.org:16004/';
     // var response2 = await http.post(
     //   Uri.parse(url2),
@@ -205,21 +217,21 @@ class _CameraDetailState extends State<CameraDetail> {
 
     // print(response2.body);
     //
-    for (var i=0;i<((predict.length)/7).toInt();i++) {
-      var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
-      if (predictArr[5] < 0.3) break;
-      setState(() {
-        boxData.add({
-          'class': predictArr[6].toInt(),
-          'x': predictArr[2] / resizeImage.width,
-          'y': predictArr[1] / resizeImage.height,
-          'w': (predictArr[4] - predictArr[2]) / resizeImage.width,
-          'h': (predictArr[3] - predictArr[1]) / resizeImage.height,
-        });
-      });
-    }
-
-    setState(() => isDetect = true);
+    // for (var i=0;i<((predict.length)/7).toInt();i++) {
+    //   var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
+    //   if (predictArr[5] < 0.3) break;
+    //   setState(() {
+    //     boxData.add({
+    //       'class': predictArr[6].toInt(),
+    //       'x': predictArr[2] / resizeImage.width,
+    //       'y': predictArr[1] / resizeImage.height,
+    //       'w': (predictArr[4] - predictArr[2]) / resizeImage.width,
+    //       'h': (predictArr[3] - predictArr[1]) / resizeImage.height,
+    //     });
+    //   });
+    // }
+    //
+    // setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
 
