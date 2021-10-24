@@ -117,11 +117,20 @@ class _CameraDetailState extends State<CameraDetail> {
     });
   }
 
-  List<double> classFilter(List<List<double>> classData) {
-    List<double> classes = [];
+  List<int> classFilter(List<List<double>> classData) {
+    List<int> classes = [];
+
+    // 2차원 기본 배열 생성
+    List<List<double>> classAxis1 = List.generate(25200, (i) => List.generate(classData.length, (j) => 0));
 
     for (var i=0;i<classData.length;i++) {
-      classes.add(classData[i].reduce(max));
+      for (var j=0;j<classData[i].length;j++) {
+        classAxis1[j][i] = classData[i][j];
+      }
+    }
+
+    for (var i=0;i<classAxis1.length;i++) {
+      classes.add(classAxis1[i].indexOf(classAxis1[i].reduce(max)));
     }
     
     return classes;
@@ -149,11 +158,19 @@ class _CameraDetailState extends State<CameraDetail> {
     List<List<double>> classes = arr2D.sublist(5, 155);
     List classFiltered = classFilter(classes);
 
-    print(boxes.length);
-    print(scores.length);
-    print(classFiltered.length);
-
     return [boxes, scores, classFiltered];
+  }
+
+  Future<File> getNetworkFile(url) async {
+    final response = await http.get(Uri.parse(url));
+
+    final documentDirectory = await getApplicationDocumentsDirectory();
+
+    final file = File(path.join(documentDirectory.path, 'networkImage.png'));
+
+    file.writeAsBytesSync(response.bodyBytes);
+
+    return file;
   }
 
   void detectAction() async {
@@ -163,11 +180,16 @@ class _CameraDetailState extends State<CameraDetail> {
     // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
     String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
-    var bytes = _image!.readAsBytesSync().buffer.asUint8List();
+    // var bytes = _image!.readAsBytesSync().buffer.asUint8List();
+
+    var networkFile = await getNetworkFile('https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAxOTA4MDhfMTcx%2FMDAxNTY1MjI5Mzc5MzA5.f9jpsIedC7MmUcla9WoGUFZfzwyciqiIn11rf-WKfwog.qbXKo9O4MAhVOg1HEnV0fM1DvidI-YWO0LQ3R2ZchiYg.JPEG.msinvestment%2F%25BD%25C3%25B1%25D7%25B4%25CF%25C3%25B3%25C7%25C7%25C0%25DA07287.jpg&type=sc960_832');
+    var bytes = networkFile.readAsBytesSync().buffer.asUint8List();
 
     crop.Image? image = await crop.decodeImage(bytes);
     var resizeImage = crop.copyResize(image!, width: 640, height: 640);
     var decodeBytes = resizeImage.getBytes(format: crop.Format.rgb);
+
+    print(decodeBytes);
 
     var body = jsonEncode({
       "inputs": [
@@ -193,30 +215,28 @@ class _CameraDetailState extends State<CameraDetail> {
     );
 
     var predict = json.decode(response.body)['outputs'][0]['data'];
+    // print(predict.sublist(0, 100));
+    // print(predict.sublist(25200, 25300));
 
     var output = convertOutput(predict.cast<double>());
+    print(output[1][0]);
 
     for (var i=0;i<output[1][0].length;i++) {
-      if (output[1][0][i] >= 0.70 && output[1][0][i] <= 1.0) {
-        print(i);
-        print(output[1][0][i]);
+      if (output[1][0][i] <= 1.0 && output[1][0][i] >= 0.7) {
+        double x = output[0][0][i];
+        double y = output[0][1][i];
+        double w = output[0][2][i];
+        double h = output[0][3][i];
+
+        print('class: ' + output[2][i].toString());
+        print('confidence: ' + output[1][0][i].toString());
+        print('position: ' + '${x}, ${y}, ${w}, ${h}');
       };
     }
 
     // 좌표, 점수, 클래스
 
     // setState(() => boxData = []);
-
-    // String url2 = 'http://namuintell.iptime.org:16004/';
-    // var response2 = await http.post(
-    //   Uri.parse(url2),
-    //   body: jsonEncode(predict)
-    // );
-    //
-    // print(response2.body);
-
-    // print(response2.body);
-    //
     // for (var i=0;i<((predict.length)/7).toInt();i++) {
     //   var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
     //   if (predictArr[5] < 0.3) break;
@@ -230,7 +250,7 @@ class _CameraDetailState extends State<CameraDetail> {
     //     });
     //   });
     // }
-    //
+
     // setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
