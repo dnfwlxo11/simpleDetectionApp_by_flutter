@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:http/http.dart' as http;
 import 'package:image/image.dart' as crop;
 import 'package:flutter/services.dart' show rootBundle;
@@ -120,45 +122,34 @@ class _CameraDetailState extends State<CameraDetail> {
   List<int> classFilter(List<List<double>> classData) {
     List<int> classes = [];
 
-    // 2차원 기본 배열 생성
-    List<List<double>> classAxis1 = List.generate(25200, (i) => List.generate(classData.length, (j) => 0));
-
     for (var i=0;i<classData.length;i++) {
-      for (var j=0;j<classData[i].length;j++) {
-        classAxis1[j][i] = classData[i][j];
-      }
+      classes.add(classData[i].indexOf(classData[i].reduce(max)));
     }
 
-    for (var i=0;i<classAxis1.length;i++) {
-      classes.add(classAxis1[i].indexOf(classAxis1[i].reduce(max)));
-    }
-    
     return classes;
   }
 
-  List<List<double>> convert2dArr(List<double> array) {
-    List<List<double>> arr2D = [];
-    for (var i = 0;i<155; i++) {
-      arr2D.add(array.sublist(i*25200, (i+1)*25200));
+  List<List> convert2dArr(List<double> array) {
+    List<List<double>> boxes = [];
+    List<double> scores = [];
+    List<List<double>> classes = [];
+
+    for (var i=0;i<25200;i++) {
+      var tmpList = array.sublist(i*155, (i+1)*155);
+      boxes.add(tmpList.sublist(0, 4));
+      scores.add(tmpList.sublist(4, 5)[0]);
+      classes.add(tmpList.sublist(5, 155));
     }
 
-    return arr2D;
+    return [boxes, scores, classes];
   }
 
   List<List> convertOutput(List<double> outputData) {
-    List<List<double>> arr2D = convert2dArr(outputData);
+    List<List> arr2D = convert2dArr(outputData);
 
-    // get Boxs
-    List boxes = arr2D.sublist(0, 4);
+    List<int> classFiltered = classFilter(arr2D[2].cast<List<double>>());
 
-    // get Scores
-    List scores = arr2D.sublist(4, 5);
-
-    // get classes
-    List<List<double>> classes = arr2D.sublist(5, 155);
-    List classFiltered = classFilter(classes);
-
-    return [boxes, scores, classFiltered];
+    return [arr2D[0], arr2D[1], classFiltered];
   }
 
   Future<File> getNetworkFile(url) async {
@@ -173,6 +164,24 @@ class _CameraDetailState extends State<CameraDetail> {
     return file;
   }
 
+  List<int> convertTorchArr(List<int> arr) {
+    List<int> outputArr = [];
+
+    for (var i=0;i<arr.length;i+=3) {
+      outputArr.add(arr[i]);
+    }
+
+    for (var i=1;i<arr.length;i+=3) {
+      outputArr.add(arr[i]);
+    }
+
+    for (var i=2;i<arr.length;i+=3) {
+      outputArr.add(arr[i]);
+    }
+
+    return outputArr;
+  }
+
   void detectAction() async {
     setState(() => isComplete = false);
     setState(() => isDetect = false);
@@ -180,16 +189,24 @@ class _CameraDetailState extends State<CameraDetail> {
     // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
     String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
-    // var bytes = _image!.readAsBytesSync().buffer.asUint8List();
-
-    var networkFile = await getNetworkFile('https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAxOTA4MDhfMTcx%2FMDAxNTY1MjI5Mzc5MzA5.f9jpsIedC7MmUcla9WoGUFZfzwyciqiIn11rf-WKfwog.qbXKo9O4MAhVOg1HEnV0fM1DvidI-YWO0LQ3R2ZchiYg.JPEG.msinvestment%2F%25BD%25C3%25B1%25D7%25B4%25CF%25C3%25B3%25C7%25C7%25C0%25DA07287.jpg&type=sc960_832');
+    var networkFile = await getNetworkFile('https://blogfiles.pstatic.net/MjAyMDAyMTNfMjc1/MDAxNTgxNTU1ODczMjkw.zHPzPpUtTYiOuJGAd2JkTMWckM3EMUdzWsq35ODKql4g.cgI3y7lkZdfiiDlejdZ7SS2sj3e4wTPhfMSd0PxEXtQg.JPEG.dlftkd4444/20200212_193423.jpg?type=w1');
     var bytes = networkFile.readAsBytesSync().buffer.asUint8List();
+
+    // var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
     crop.Image? image = await crop.decodeImage(bytes);
     var resizeImage = crop.copyResize(image!, width: 640, height: 640);
     var decodeBytes = resizeImage.getBytes(format: crop.Format.rgb);
 
-    print(decodeBytes);
+    var torchArr = convertTorchArr(decodeBytes);
+    print(torchArr.length);
+
+    List<double> doubleList = [];
+    for (var i=0;i<torchArr.length;i++) {
+      doubleList.add(torchArr[i]/255.0);
+    }
+
+    print(doubleList);
 
     var body = jsonEncode({
       "inputs": [
@@ -199,8 +216,8 @@ class _CameraDetailState extends State<CameraDetail> {
           // "shape": [1, resizeImage.height, resizeImage.width, 3],
           "name": "images",
           "datatype": "FP32",
-          "shape": [1, 3, resizeImage.height, resizeImage.width],
-          "data": decodeBytes
+          "shape": [1, resizeImage.height, resizeImage.width, 3],
+          "data": Float32List.fromList(doubleList)
         }
       ],
 
@@ -215,27 +232,37 @@ class _CameraDetailState extends State<CameraDetail> {
     );
 
     var predict = json.decode(response.body)['outputs'][0]['data'];
-    // print(predict.sublist(0, 100));
-    // print(predict.sublist(25200, 25300));
 
     var output = convertOutput(predict.cast<double>());
-    print(output[1][0]);
 
-    for (var i=0;i<output[1][0].length;i++) {
-      if (output[1][0][i] <= 1.0 && output[1][0][i] >= 0.7) {
-        double x = output[0][0][i];
-        double y = output[0][1][i];
-        double w = output[0][2][i];
-        double h = output[0][3][i];
+    print(output[1]);
+
+    for (var i=0;i<output[1].length;i++) {
+      if (output[1][i] >= 0.25) {
+        double x = output[0][i][0];
+        double y = output[0][i][1];
+        double w = output[0][i][2];
+        double h = output[0][i][3];
 
         print('class: ' + output[2][i].toString());
-        print('confidence: ' + output[1][0][i].toString());
+        print('confidence: ' + output[1][i].toString());
         print('position: ' + '${x}, ${y}, ${w}, ${h}');
+
+        setState(() {
+          boxData.add({
+            'class': output[2][i].toString(),
+            'x': x / resizeImage.width,
+            'y': y / resizeImage.height,
+            'w': (w - x) / resizeImage.width,
+            'h': (h - y) / resizeImage.height,
+          });
+        });
       };
     }
 
     // 좌표, 점수, 클래스
 
+    // EfficientDet
     // setState(() => boxData = []);
     // for (var i=0;i<((predict.length)/7).toInt();i++) {
     //   var predictArr = predict.sublist(0 + (i * 7), 7 + (i * 7));
