@@ -54,7 +54,7 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   void getLabelMap() async {
-    var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
+    var tmp = json.decode(await rootBundle.loadString('assets/labelMap2.json'));
     setState(() => labelMap = tmp);
   }
 

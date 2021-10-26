@@ -1,0 +1,175 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:image/image.dart' as crop;
+import 'dart:math';
+
+File? targetImage;
+crop.Image? convertedImage;
+
+List<int> classFilter(List<List<double>> classData) {
+  List<int> classes = [];
+
+  for (var i=0;i<classData.length;i++) {
+    classes.add(classData[i].indexOf(classData[i].reduce(max)));
+  }
+
+  return classes;
+}
+
+List<List> convert2dArr(List<double> array) {
+  List<List<double>> boxes = [];
+  List<double> scores = [];
+  List<List<double>> classes = [];
+
+  for (var i=0;i<25200;i++) {
+    var tmpList = array.sublist(i*155, (i+1)*155);
+    boxes.add(tmpList.sublist(0, 4));
+    scores.add(tmpList.sublist(4, 5)[0]);
+    classes.add(tmpList.sublist(5, 155));
+  }
+
+  return [boxes, scores, classes];
+}
+
+List<List> convertYoloV5type(List<double> outputData) {
+  List<List> arr2D = convert2dArr(outputData);
+
+  List<int> classFiltered = classFilter(arr2D[2].cast<List<double>>());
+
+  return [arr2D[0], arr2D[1], classFiltered];
+}
+
+List<int> convertTorchArr(List<int> arr) {
+  List<int> outputArr = [];
+
+  for (var i=0;i<arr.length;i+=3) {
+    outputArr.add(arr[i]);
+  }
+
+  for (var i=1;i<arr.length;i+=3) {
+    outputArr.add(arr[i]);
+  }
+
+  for (var i=2;i<arr.length;i+=3) {
+    outputArr.add(arr[i]);
+  }
+
+  return outputArr;
+}
+
+List<double> convertFP32TypeArr(arr) {
+  List<double> doubleList = [];
+  for (var i=0;i<arr.length;i++) {
+    doubleList.add(arr[i]/255.0);
+  }
+
+  return doubleList;
+}
+
+List convertOutput(predict) {
+  List boxData = [];
+
+  var output = convertYoloV5type(predict.cast<double>());
+
+  for (var i=0;i<output[1].length;i++) {
+    if (output[1][i] >= 0.25) {
+      double x = output[0][i][0] / convertedImage!.width;
+      double y = output[0][i][1] / convertedImage!.height;
+      double w = output[0][i][2] / convertedImage!.width;
+      double h = output[0][i][3] / convertedImage!.height;
+
+      boxData.add({
+        'class': output[2][i].toString(),
+        'x': x - (w / 2),
+        'y': y - (h / 2),
+        'w': w,
+        'h': h,
+      });
+    }
+  }
+
+  return iouUnit(boxData);
+}
+
+List iouUnit(List arr) {
+  List drawIndex = [];
+  List<int> deleteIndex = [];
+
+  print(arr.length);
+
+  for (var i=0;i<arr.length;i++) {
+    if (deleteIndex.indexOf(i) != -1) continue;
+
+    var box1 = [arr[i]['x'], arr[i]['y'], arr[i]['w'] + arr[i]['x'], arr[i]['h'] + arr[i]['y']];
+
+    var box1_area = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1);
+
+    for (var j=i;j<arr.length;j++) {
+      if (deleteIndex.indexOf(j) != -1 || i == j) continue;
+
+      var box2 = [arr[j]['x'], arr[j]['y'], arr[j]['w'] + arr[j]['x'], arr[j]['h'] + arr[j]['y']];
+      var box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1);
+
+      var x1 = box1[0] > box2[0] ? box1[0] : box2[0];
+      var y1 = box1[1] > box2[1] ? box1[1] : box2[1];
+      var x2 = box1[2] < box2[2] ? box1[2] : box2[2];
+      var y2 = box1[3] < box2[3] ? box1[3] : box2[3];
+
+      var w = 0 > (x2 - x1 + 1) ? 0 : (x2 - x1 + 1);
+      var h = 0 > (y2 - y1 + 1) ? 0 : (y2 - y1 + 1);
+
+      var inter = w * h;
+
+      var iou = inter / (box1_area + box2_area - inter);
+      print(iou);
+
+      if (iou > 0.45 && arr[i]['class'] == arr[j]['class']) deleteIndex.add(j);
+    }
+  }
+
+  for (var i=0;i<arr.length;i++) {
+    if (deleteIndex.indexOf(i) == -1) drawIndex.add(arr[i]);
+  }
+
+  print(deleteIndex);
+  print(drawIndex);
+
+  return drawIndex;
+}
+
+void setTargetImage(image) {
+  targetImage = image;
+}
+
+Future<List<double>> getImageBytes() async {
+  var bytes = targetImage!.readAsBytesSync().buffer.asUint8List();
+  crop.Image? image = await crop.decodeImage(bytes);
+
+  var resizeImage = crop.copyResize(image!, width: 640, height: 640);
+  convertedImage = resizeImage;
+
+  var decodeBytes = resizeImage.getBytes(format: crop.Format.rgb);
+  var torchTypeArr = convertTorchArr(decodeBxxxytes);
+  var FP32TypeArr = convertFP32TypeArr(torchTypeArr);
+
+  return Float32List.fromList(FP32TypeArr);
+}
+
+dynamic getRequestBody(data) {
+  return jsonEncode({
+    "inputs": [
+      {
+        "name": "images",
+        "datatype": "FP32",
+        "shape": [1, 3, convertedImage!.height, convertedImage!.width],
+        "data": data
+      }
+    ],
+
+    "parameters":{
+      "binary_data_output": false
+    }
+  });
+}
