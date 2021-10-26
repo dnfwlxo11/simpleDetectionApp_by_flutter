@@ -15,6 +15,8 @@ import 'package:intl/intl.dart';
 import 'package:mysql1/mysql1.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:simple_detection_app/detectionModelFunc/yolov5.dart';
+import 'package:simple_detection_app/detectionModelFunc/efficientDet.dart';
 
 class CameraDetail extends StatefulWidget {
   final String imagePath;
@@ -55,7 +57,6 @@ class _CameraDetailState extends State<CameraDetail> {
     super.initState();
     initDb();
     getLabelMap();
-    print(widget.imagePath);
     setState(() {
       _image = File(widget.imagePath);
     });
@@ -69,7 +70,8 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void getLabelMap() async {
-    var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
+    // var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
+    var tmp = json.decode(await rootBundle.loadString('assets/labelMap2.json'));
     setState(() => labelMap = tmp);
   }
 
@@ -99,6 +101,7 @@ class _CameraDetailState extends State<CameraDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
+                // '${points[idx]['class']}',
                 style: TextStyle(fontSize: 20, color: const Color(0xff5f6062)),
               ),
               color: const Color(0xffe8e0fe),
@@ -189,24 +192,21 @@ class _CameraDetailState extends State<CameraDetail> {
     // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
     String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
-    var networkFile = await getNetworkFile('https://blogfiles.pstatic.net/MjAyMDAyMTNfMjc1/MDAxNTgxNTU1ODczMjkw.zHPzPpUtTYiOuJGAd2JkTMWckM3EMUdzWsq35ODKql4g.cgI3y7lkZdfiiDlejdZ7SS2sj3e4wTPhfMSd0PxEXtQg.JPEG.dlftkd4444/20200212_193423.jpg?type=w1');
-    var bytes = networkFile.readAsBytesSync().buffer.asUint8List();
+    // var networkFile = await getNetworkFile('https://blogfiles.pstatic.net/MjAyMDEyMDVfMTAy/MDAxNjA3MTY1NjYwMTk4.gNKBmMC1ui2JT5Skh4gLs-Y-8gogwR0kQJJZ3dPmPKog.ciSdhY5e7m7A1k_85XRFHpqQjaep18BKOEHYNDvzo0Ig.JPEG.bright_gem_2020/SE-D7D74008-913C-4C22-8ABD-DA531EEAF358.jpg');
+    // var bytes = networkFile.readAsBytesSync().buffer.asUint8List();
 
-    // var bytes = _image!.readAsBytesSync().buffer.asUint8List();
+    var bytes = _image!.readAsBytesSync().buffer.asUint8List();
 
     crop.Image? image = await crop.decodeImage(bytes);
     var resizeImage = crop.copyResize(image!, width: 640, height: 640);
     var decodeBytes = resizeImage.getBytes(format: crop.Format.rgb);
 
     var torchArr = convertTorchArr(decodeBytes);
-    print(torchArr.length);
 
     List<double> doubleList = [];
     for (var i=0;i<torchArr.length;i++) {
       doubleList.add(torchArr[i]/255.0);
     }
-
-    print(doubleList);
 
     var body = jsonEncode({
       "inputs": [
@@ -216,7 +216,7 @@ class _CameraDetailState extends State<CameraDetail> {
           // "shape": [1, resizeImage.height, resizeImage.width, 3],
           "name": "images",
           "datatype": "FP32",
-          "shape": [1, resizeImage.height, resizeImage.width, 3],
+          "shape": [1, 3, resizeImage.height, resizeImage.width],
           "data": Float32List.fromList(doubleList)
         }
       ],
@@ -237,12 +237,13 @@ class _CameraDetailState extends State<CameraDetail> {
 
     print(output[1]);
 
+    // YoloV5
     for (var i=0;i<output[1].length;i++) {
       if (output[1][i] >= 0.25) {
-        double x = output[0][i][0];
-        double y = output[0][i][1];
-        double w = output[0][i][2];
-        double h = output[0][i][3];
+        double x = output[0][i][0] / resizeImage.width;
+        double y = output[0][i][1] / resizeImage.height;
+        double w = output[0][i][2] / resizeImage.width;
+        double h = output[0][i][3] / resizeImage.height;
 
         print('class: ' + output[2][i].toString());
         print('confidence: ' + output[1][i].toString());
@@ -251,10 +252,10 @@ class _CameraDetailState extends State<CameraDetail> {
         setState(() {
           boxData.add({
             'class': output[2][i].toString(),
-            'x': x / resizeImage.width,
-            'y': y / resizeImage.height,
-            'w': (w - x) / resizeImage.width,
-            'h': (h - y) / resizeImage.height,
+            'x': x - (w / 2),
+            'y': y - (h / 2),
+            'w': w,
+            'h': h,
           });
         });
       };
@@ -278,7 +279,7 @@ class _CameraDetailState extends State<CameraDetail> {
     //   });
     // }
 
-    // setState(() => isDetect = true);
+    setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
 
