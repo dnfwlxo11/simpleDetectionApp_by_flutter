@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
         ),
         bottomNavigationBar: new BottomNavigationBar(
           // type: BottomNavigationBarType.fixed, // 메뉴가 3개 초과할때만 활성화
-          backgroundColor: Color(0xffe8e0fe),
+          backgroundColor: Color(0xff5293c9),
           showUnselectedLabels: false,
           currentIndex: _bottomTabIndex,
           onTap: (int index) {
@@ -64,9 +64,9 @@ class _HomePageState extends State<HomePage> {
             this._pageController?.animateToPage(index,duration: const Duration(milliseconds: 500),curve: Curves.easeInOut);
           },
           items: <BottomNavigationBarItem>[
-            new BottomNavigationBarItem(icon: Icon(Icons.home, color: Color(0xff5f6062)), title: Text('홈', style: TextStyle(color: Color(0xff5f6062), fontWeight: FontWeight.bold))),
-            new BottomNavigationBarItem(icon: Icon(Icons.camera, color: Color(0xff5f6062)), title: Text('카메라', style: TextStyle(color: Color(0xff5f6062), fontWeight: FontWeight.bold))),
-            new BottomNavigationBarItem(icon: Icon(Icons.image, color: Color(0xff5f6062)), title: Text('갤러리', style: TextStyle(color: Color(0xff5f6062), fontWeight: FontWeight.bold))),
+            new BottomNavigationBarItem(icon: Icon(Icons.home, color: Color(0xffeeeeee)), title: Text('홈', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))),
+            new BottomNavigationBarItem(icon: Icon(Icons.camera, color: Color(0xffeeeeee)), title: Text('카메라', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))),
+            new BottomNavigationBarItem(icon: Icon(Icons.image, color: Color(0xffeeeeee)), title: Text('갤러리', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))),
           ],)
     );
   }

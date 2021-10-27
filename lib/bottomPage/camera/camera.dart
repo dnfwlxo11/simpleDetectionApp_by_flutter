@@ -94,8 +94,8 @@ class _CameraState extends State<Camera> {
                 Container(
                   padding: EdgeInsets.only(bottom: 20),
                   child: FloatingActionButton(
-                    backgroundColor: Color(0xffe8e0fe),
-                    child: Icon(Icons.camera_alt, color: Color(0xff5f6062)),
+                    backgroundColor: Color(0xff5293c9),
+                    child: Icon(Icons.camera_alt, color: Color(0xffeeeeee)),
                     onPressed: () async {
                       try {
                         await _initializeControllerFuture;

@@ -54,6 +54,7 @@ class _DetectDetailState extends State<DetectDetail> {
   }
 
   void getLabelMap() async {
+    // var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
     var tmp = json.decode(await rootBundle.loadString('assets/labelMap2.json'));
     setState(() => labelMap = tmp);
   }
@@ -137,9 +138,9 @@ class _DetectDetailState extends State<DetectDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
-                style: TextStyle(fontSize: 20, color: Color(0xff5f6062)),
+                style: TextStyle(fontSize: 20, color: Color(0xffeeeeee)),
               ),
-              color: Color(0xffe8e0fe),
+              color: Color(0xff5293c9),
             ),
             InkWell(
               child: Container(
@@ -148,7 +149,7 @@ class _DetectDetailState extends State<DetectDetail> {
                 decoration: BoxDecoration(
                   border: Border.all(
                     width: 2,
-                    color: Color(0xffe8e0fe),
+                    color: Color(0xff5293c9),
                   ),
                 ),
               ),
@@ -169,7 +170,7 @@ class _DetectDetailState extends State<DetectDetail> {
         Container(
           padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 18.0),
           decoration: BoxDecoration(
-            color: Color(0xffe8e0fe),
+            color: Color(0xff5293c9),
             borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
           ),
           child: Column(
@@ -178,13 +179,13 @@ class _DetectDetailState extends State<DetectDetail> {
                 child: Icon(
                   Icons.keyboard_arrow_up,
                   size: 40,
-                  color: Color(0xff5f6062),
+                  color: Color(0xffeeeeee),
                 ),
               ),
               Text(
                 "분석 결과",
                 style: TextStyle(
-                    color: Color(0xff5f6062),
+                    color: Color(0xffeeeeee),
                     fontSize: 20,
                     fontWeight: FontWeight.bold
                 ),
@@ -208,12 +209,12 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget detectList(detects, ScrollController sc) {
       return Container(
         decoration: BoxDecoration(
-            color: Colors.white,
+            color: Color(0xffeeeeee),
             borderRadius: BorderRadius.all(Radius.circular(18.0)),
             boxShadow: [
               BoxShadow(
-                blurRadius: 20.0,
-                color: Colors.grey,
+                blurRadius: 5.0,
+                color: Colors.black,
               ),
             ]
         ),
@@ -248,7 +249,7 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget collapseWidget() {
       return Container(
         decoration: BoxDecoration(
-          color: Color(0xffe8e0fe),
+          color: Color(0xff5293c9),
           borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
         ),
         margin: const EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0.0),
@@ -256,14 +257,14 @@ class _DetectDetailState extends State<DetectDetail> {
           children: [
             Expanded(
               child: Center(
-                child: Icon(Icons.keyboard_arrow_up, size: 40, color: Color(0xff5f6062)),
+                child: Icon(Icons.keyboard_arrow_up, size: 40, color: Color(0xffeeeeee)),
               ),
             ),
             Expanded(
               child: Text(
                   "분석 결과",
                   style: TextStyle(
-                      color: Color(0xff5f6062),
+                      color: Color(0xffeeeeee),
                       fontWeight: FontWeight.bold,
                       fontSize: 20
                   )
@@ -278,17 +279,17 @@ class _DetectDetailState extends State<DetectDetail> {
       resizeToAvoidBottomInset : false,
       appBar: AppBar(
         iconTheme: IconThemeData(
-            color: Color(0xff5f6062)
+            color: Color(0xffeeeeee)
         ),
         title: Text(
           '상세보기',
           style: TextStyle(
-            color: Color(0xff5f6062),
+            color: Color(0xffeeeeee),
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
-        backgroundColor: Color(0xffe8e0fe),
+        backgroundColor: Color(0xff5293c9),
       ),
       body: SlidingUpPanel(
         backdropEnabled: true,

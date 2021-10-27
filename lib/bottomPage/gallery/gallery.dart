@@ -97,7 +97,7 @@ class _GalleryState extends State<Gallery> {
                           padding: EdgeInsets.only(right: 10, top: 10),
                           child: Icon(
                               Icons.delete,
-                              color: Colors.white,
+                              color: Color(0xffeeeeee),
                               size: 30
                           ),
                         )
@@ -114,7 +114,7 @@ class _GalleryState extends State<Gallery> {
               children: [
                 Text('${DateFormat('yy/MM/dd HH:mm:ss').format(image.statSync().accessed)}',
                     style: TextStyle(
-                        color: Color(0xff5f6062),
+                        color: Color(0xffeeeeee),
                         fontWeight: FontWeight.bold,
                         fontSize: 16
                     )
@@ -158,7 +158,7 @@ class _GalleryState extends State<Gallery> {
                       child: Card(
                         semanticContainer: true,
                         clipBehavior: Clip.antiAliasWithSaveLayer,
-                        color: Color(0xffe8e0fe),
+                        color: Color(0xff5293c9),
                         child: itemCard(imgList[index]),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),
