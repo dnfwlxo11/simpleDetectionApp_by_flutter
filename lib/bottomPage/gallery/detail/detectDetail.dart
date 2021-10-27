@@ -137,9 +137,9 @@ class _DetectDetailState extends State<DetectDetail> {
               padding: EdgeInsets.all(7),
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
-                style: TextStyle(fontSize: 20, color: const Color(0xff5f6062)),
+                style: TextStyle(fontSize: 20, color: Color(0xff5f6062)),
               ),
-              color: const Color(0xffe8e0fe),
+              color: Color(0xffe8e0fe),
             ),
             InkWell(
               child: Container(
@@ -148,7 +148,7 @@ class _DetectDetailState extends State<DetectDetail> {
                 decoration: BoxDecoration(
                   border: Border.all(
                     width: 2,
-                    color: const Color(0xffe8e0fe),
+                    color: Color(0xffe8e0fe),
                   ),
                 ),
               ),
@@ -169,7 +169,7 @@ class _DetectDetailState extends State<DetectDetail> {
         Container(
           padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 18.0),
           decoration: BoxDecoration(
-            color: const Color(0xffe8e0fe),
+            color: Color(0xffe8e0fe),
             borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
           ),
           child: Column(
@@ -178,13 +178,13 @@ class _DetectDetailState extends State<DetectDetail> {
                 child: Icon(
                   Icons.keyboard_arrow_up,
                   size: 40,
-                  color: const Color(0xff5f6062),
+                  color: Color(0xff5f6062),
                 ),
               ),
               Text(
                 "분석 결과",
                 style: TextStyle(
-                    color: const Color(0xff5f6062),
+                    color: Color(0xff5f6062),
                     fontSize: 20,
                     fontWeight: FontWeight.bold
                 ),
@@ -248,7 +248,7 @@ class _DetectDetailState extends State<DetectDetail> {
     Widget collapseWidget() {
       return Container(
         decoration: BoxDecoration(
-          color: const Color(0xffe8e0fe),
+          color: Color(0xffe8e0fe),
           borderRadius: BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
         ),
         margin: const EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0.0),
@@ -256,14 +256,14 @@ class _DetectDetailState extends State<DetectDetail> {
           children: [
             Expanded(
               child: Center(
-                child: Icon(Icons.keyboard_arrow_up, size: 40, color: const Color(0xff5f6062)),
+                child: Icon(Icons.keyboard_arrow_up, size: 40, color: Color(0xff5f6062)),
               ),
             ),
             Expanded(
               child: Text(
                   "분석 결과",
                   style: TextStyle(
-                      color: const Color(0xff5f6062),
+                      color: Color(0xff5f6062),
                       fontWeight: FontWeight.bold,
                       fontSize: 20
                   )
@@ -278,17 +278,17 @@ class _DetectDetailState extends State<DetectDetail> {
       resizeToAvoidBottomInset : false,
       appBar: AppBar(
         iconTheme: IconThemeData(
-            color: const Color(0xff5f6062)
+            color: Color(0xff5f6062)
         ),
         title: Text(
           '상세보기',
           style: TextStyle(
-            color: const Color(0xff5f6062),
+            color: Color(0xff5f6062),
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
-        backgroundColor: const Color(0xffe8e0fe),
+        backgroundColor: Color(0xffe8e0fe),
       ),
       body: SlidingUpPanel(
         backdropEnabled: true,

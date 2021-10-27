@@ -28,12 +28,12 @@ class _HomeState extends State<Home> {
     return List.generate(test.length, (index) {
       return Container(
         child: Card(
-            color: const Color(0xffe8e0fe),
+            color: Color(0xffe8e0fe),
             child: Column(
               children: [
                 FlutterLogo(
                   size: 120,
-                  textColor: const Color(0xffe8e0fe),
+                  textColor: Color(0xffe8e0fe),
                 ),
                 Text('${index + 1}'),
               ],
@@ -72,12 +72,14 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                   mainCard(),
-                  isImage ? Expanded(
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: someItems(),
-                      )
-                  ) : CircularProgressIndicator()
+                  Container(
+                    child: isImage ? Expanded(
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: someItems(),
+                        )
+                    ) : CircularProgressIndicator(),
+                  ),
                 ],
               ),
           ),

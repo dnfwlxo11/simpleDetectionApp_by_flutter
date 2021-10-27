@@ -10,7 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:gallery_saver/gallery_saver.dart';
-import 'package:simple_detection_app/cameraDetail.dart';
+import 'package:simple_detection_app/bottomPage/camera/detail/cameraDetail.dart';
 
 import 'dart:async';
 
@@ -94,8 +94,8 @@ class _CameraState extends State<Camera> {
                 Container(
                   padding: EdgeInsets.only(bottom: 20),
                   child: FloatingActionButton(
-                    backgroundColor: const Color(0xffe8e0fe),
-                    child: Icon(Icons.camera_alt, color: const Color(0xff5f6062)),
+                    backgroundColor: Color(0xffe8e0fe),
+                    child: Icon(Icons.camera_alt, color: Color(0xff5f6062)),
                     onPressed: () async {
                       try {
                         await _initializeControllerFuture;

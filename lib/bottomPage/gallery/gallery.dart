@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:simple_detection_app/detectDetail.dart';
+import 'package:simple_detection_app/bottomPage/gallery/detail/detectDetail.dart';
 
 
 class Gallery extends StatefulWidget {
@@ -114,7 +114,7 @@ class _GalleryState extends State<Gallery> {
               children: [
                 Text('${DateFormat('yy/MM/dd HH:mm:ss').format(image.statSync().accessed)}',
                     style: TextStyle(
-                        color: const Color(0xff5f6062),
+                        color: Color(0xff5f6062),
                         fontWeight: FontWeight.bold,
                         fontSize: 16
                     )
@@ -158,7 +158,7 @@ class _GalleryState extends State<Gallery> {
                       child: Card(
                         semanticContainer: true,
                         clipBehavior: Clip.antiAliasWithSaveLayer,
-                        color: const Color(0xffe8e0fe),
+                        color: Color(0xffe8e0fe),
                         child: itemCard(imgList[index]),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20.0),

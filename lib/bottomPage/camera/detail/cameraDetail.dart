@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_detection_app/detectionModelFunc/yolov5.dart' as yolo;
 import 'package:simple_detection_app/detectionModelFunc/efficientDet.dart' as efficient;
+import 'package:simple_detection_app/utils/progressSpinkit.dart' as spinkit;
 
 class CameraDetail extends StatefulWidget {
   final String imagePath;
@@ -68,8 +69,8 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void getLabelMap() async {
-    // var tmp = json.decode(await rootBundle.loadString('assets/labelMap.json'));
-    var tmp = json.decode(await rootBundle.loadString('assets/labelMap2.json'));
+    var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap.json'));
+    // var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap2.json'));
     setState(() => labelMap = tmp);
   }
 
@@ -83,7 +84,7 @@ class _CameraDetailState extends State<CameraDetail> {
     Fluttertoast.showToast(
         textColor: Colors.black,
         msg: message,
-        backgroundColor: const Color(0xffe8e0fe),
+        backgroundColor: Color(0xffe8e0fe),
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM
     );
@@ -101,9 +102,9 @@ class _CameraDetailState extends State<CameraDetail> {
               child: Text(
                 '${labelMap['${points[idx]['class']}']}',
                 // '${points[idx]['class']}',
-                style: TextStyle(fontSize: 20, color: const Color(0xff5f6062)),
+                style: TextStyle(fontSize: 20, color: Color(0xff5f6062)),
               ),
-              color: const Color(0xffe8e0fe),
+              color: Color(0xffe8e0fe),
             ),
             Container(
               width: (points[idx]['w']*detectImgWidth),
@@ -111,7 +112,7 @@ class _CameraDetailState extends State<CameraDetail> {
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 2,
-                  color: const Color(0xffe8e0fe),
+                  color: Color(0xffe8e0fe),
                 ),
               ),
             ),
@@ -126,12 +127,12 @@ class _CameraDetailState extends State<CameraDetail> {
     setState(() => isDetect = false);
     setState(() => boxData = []);
 
-    // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
-    String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
+    String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
+    // String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
-    yolo.setTargetImage(_image);
-    var data = await yolo.getImageBytes();
-    var body = yolo.getRequestBody(data);
+    efficient.setTargetImage(_image);
+    var data = await efficient.getImageBytes();
+    var body = efficient.getRequestBody(data);
 
     var response = await http.post(
         Uri.parse(url),
@@ -140,9 +141,9 @@ class _CameraDetailState extends State<CameraDetail> {
 
     var predict = jsonDecode(response.body)['outputs'][0]['data'];
 
-    setState(() => boxData = yolo.convertOutput(predict));
+    setState(() => boxData = efficient.convertOutput(predict));
 
-    setState(() => isDetect = true);
+    // setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
 
@@ -171,10 +172,10 @@ class _CameraDetailState extends State<CameraDetail> {
     return Scaffold(
         appBar: AppBar(
           iconTheme: IconThemeData(
-            color: const Color(0xff5f6062)
+            color: Color(0xff5f6062)
           ),
-          backgroundColor: const Color(0xffe8e0fe),
-          title: Text('미리보기', style: TextStyle(color: const Color(0xff5f6062), fontWeight: FontWeight.bold, fontSize: 20)),
+          backgroundColor: Color(0xffe8e0fe),
+          title: Text('미리보기', style: TextStyle(color: Color(0xff5f6062), fontWeight: FontWeight.bold, fontSize: 20)),
         ),
         body: Stack(
           children: [
@@ -192,25 +193,34 @@ class _CameraDetailState extends State<CameraDetail> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   RaisedButton(
-                      color: const Color(0xffe8e0fe),
+                      color: Color(0xffe8e0fe),
                       onPressed: backwardPage,
-                      child: Text('다시찍기', style: TextStyle(color: const Color(0xff5f6062), fontWeight: FontWeight.bold))
+                      child: Text('다시찍기', style: TextStyle(color: Color(0xff5f6062), fontWeight: FontWeight.bold))
                   ),
                   SizedBox(
                     width: 10,
                   ),
                   isDetect ? RaisedButton(
-                      color: const Color(0xffe8e0fe),
+                      color: Color(0xffe8e0fe),
                       onPressed: saveAction,
-                      child: Text('저장하기', style: TextStyle(color: const Color(0xff5f6062), fontWeight: FontWeight.bold))
+                      child: Text('저장하기', style: TextStyle(color: Color(0xff5f6062), fontWeight: FontWeight.bold))
                   ) : RaisedButton(
-                      color: const Color(0xffe8e0fe),
+                      color: Color(0xffe8e0fe),
                       onPressed: detectAction,
-                      child: Text('디텍팅하기', style: TextStyle(color:  const Color(0xff5f6062), fontWeight: FontWeight.bold))
+                      child: Text('디텍팅하기', style: TextStyle(color:  Color(0xff5f6062), fontWeight: FontWeight.bold))
                   ),
                 ],
               ),
-            ) : CircularProgressIndicator(),
+            ) : Container(
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  spinkit.cubeGrid
+                ],
+              ),
+            ),
           ],
         )
     );
