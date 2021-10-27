@@ -124,6 +124,7 @@ class _CameraDetailState extends State<CameraDetail> {
   void detectAction() async {
     setState(() => isComplete = false);
     setState(() => isDetect = false);
+    setState(() => boxData = []);
 
     // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
     String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
@@ -141,7 +142,7 @@ class _CameraDetailState extends State<CameraDetail> {
 
     setState(() => boxData = yolo.convertOutput(predict));
 
-    // setState(() => isDetect = true);
+    setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
 

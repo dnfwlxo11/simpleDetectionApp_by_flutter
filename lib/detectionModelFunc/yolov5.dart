@@ -6,6 +6,8 @@ import 'package:image/image.dart' as crop;
 import 'dart:math';
 
 File? targetImage;
+int? targetWidth;
+int? targetHeight;
 crop.Image? convertedImage;
 
 List<int> classFilter(List<List<double>> classData) {
@@ -102,28 +104,27 @@ List iouUnit(List arr) {
   for (var i=0;i<arr.length;i++) {
     if (deleteIndex.indexOf(i) != -1) continue;
 
-    var box1 = [arr[i]['x'], arr[i]['y'], arr[i]['w'] + arr[i]['x'], arr[i]['h'] + arr[i]['y']];
+    List<double> box1 = [arr[i]['x']*targetWidth, arr[i]['y']*targetHeight, (arr[i]['w'] + arr[i]['x'])*targetWidth, (arr[i]['h'] + arr[i]['y'])*targetHeight];
 
-    var box1_area = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1);
+    double box1_area = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1);
 
     for (var j=i;j<arr.length;j++) {
       if (deleteIndex.indexOf(j) != -1 || i == j) continue;
 
-      var box2 = [arr[j]['x'], arr[j]['y'], arr[j]['w'] + arr[j]['x'], arr[j]['h'] + arr[j]['y']];
-      var box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1);
+      List<double> box2 = [arr[j]['x']*targetWidth, arr[j]['y']*targetHeight, (arr[j]['w'] + arr[j]['x'])*targetWidth, (arr[j]['h'] + arr[j]['y'])*targetHeight];
+      double box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1);
 
-      var x1 = box1[0] > box2[0] ? box1[0] : box2[0];
-      var y1 = box1[1] > box2[1] ? box1[1] : box2[1];
-      var x2 = box1[2] < box2[2] ? box1[2] : box2[2];
-      var y2 = box1[3] < box2[3] ? box1[3] : box2[3];
+      double x1 = box1[0] > box2[0] ? box1[0] : box2[0];
+      double y1 = box1[1] > box2[1] ? box1[1] : box2[1];
+      double x2 = box1[2] < box2[2] ? box1[2] : box2[2];
+      double y2 = box1[3] < box2[3] ? box1[3] : box2[3];
 
-      var w = 0 > (x2 - x1 + 1) ? 0 : (x2 - x1 + 1);
-      var h = 0 > (y2 - y1 + 1) ? 0 : (y2 - y1 + 1);
+      double w = 0 > (x2 - x1 + 1) ? 0 : (x2 - x1 + 1);
+      double h = 0 > (y2 - y1 + 1) ? 0 : (y2 - y1 + 1);
 
-      var inter = w * h;
+      double inter = w * h;
 
-      var iou = inter / (box1_area + box2_area - inter);
-      print(iou);
+      double iou = inter / (box1_area + box2_area - inter);
 
       if (iou > 0.45 && arr[i]['class'] == arr[j]['class']) deleteIndex.add(j);
     }
@@ -133,14 +134,16 @@ List iouUnit(List arr) {
     if (deleteIndex.indexOf(i) == -1) drawIndex.add(arr[i]);
   }
 
-  print(deleteIndex);
-  print(drawIndex);
-
   return drawIndex;
 }
 
-void setTargetImage(image) {
+void setTargetImage(image) async {
   targetImage = image;
+
+  var bytes = targetImage!.readAsBytesSync().buffer.asUint8List();
+  crop.Image? targetBytes = await crop.decodeImage(bytes);
+  targetWidth = targetBytes!.width;
+  targetHeight = targetBytes.height;
 }
 
 Future<List<double>> getImageBytes() async {
@@ -151,7 +154,7 @@ Future<List<double>> getImageBytes() async {
   convertedImage = resizeImage;
 
   var decodeBytes = resizeImage.getBytes(format: crop.Format.rgb);
-  var torchTypeArr = convertTorchArr(decodeBxxxytes);
+  var torchTypeArr = convertTorchArr(decodeBytes);
   var FP32TypeArr = convertFP32TypeArr(torchTypeArr);
 
   return Float32List.fromList(FP32TypeArr);
