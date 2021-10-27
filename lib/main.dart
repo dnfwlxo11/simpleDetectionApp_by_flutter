@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:simple_detection_app/utils/splashPage.dart';
 

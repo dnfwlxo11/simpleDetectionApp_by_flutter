@@ -11,28 +11,49 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  Image? splashLogo;
+  
   @override
   void initState() {
     super.initState();
+    splashLogo = Image.asset('assets/splashCharacter.jpg');
     Timer(
         Duration(milliseconds: 4000),
             () => Navigator.push(context,
             MaterialPageRoute(
               builder: (context) => HomePage(),
-            )
-        )
+            ),
+        ),
     );
+  }
+  
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    precacheImage(splashLogo!.image, context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+          color: Colors.white,
           alignment: Alignment.center,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/splashCharacter.jpg'),
+              Text(
+                  '𝙚𝙯𝙁𝙞𝙩',
+                  style: TextStyle(
+                      fontSize: 60
+                  )
+              ),
+              Container(
+                width: 240,
+                height: 240,
+                child: Image(image: splashLogo!.image, fit: BoxFit.fill),
+              ),
               Text(
                   '스마트한 생활습관',
                   style: TextStyle(
