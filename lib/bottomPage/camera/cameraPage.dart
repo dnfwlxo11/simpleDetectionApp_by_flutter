@@ -15,14 +15,14 @@ import 'package:simple_detection_app/bottomPage/camera/detail/cameraDetail.dart'
 import 'dart:async';
 
 
-class Camera extends StatefulWidget {
-  const Camera({Key? key,}) : super(key: key);
+class CameraPage extends StatefulWidget {
+  const CameraPage({Key? key,}) : super(key: key);
 
   @override
-  _CameraState createState() => _CameraState();
+  _CameraPageState createState() => _CameraPageState();
 }
 
-class _CameraState extends State<Camera> {
+class _CameraPageState extends State<CameraPage> {
   var _saveImage;
   CameraController? _controller;
   Future<void>? _initializeControllerFuture;
@@ -115,12 +115,7 @@ class _CameraState extends State<Camera> {
 
                         String imagePath = '$path/${currTime}Detect.png';
 
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CameraDetail(imagePath: imagePath),
-                          ),
-                        );
+                        Navigator.pushNamed(context, '/camera');
                       } catch (e) {
                         print(e);
                       }

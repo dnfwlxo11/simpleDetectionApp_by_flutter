@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:simple_detection_app/bottomPage/main/home.dart';
-import 'package:simple_detection_app/bottomPage/gallery/gallery.dart';
-import 'package:simple_detection_app/bottomPage/camera/camera.dart';
+import 'package:simple_detection_app/bottomPage/main/mainPage.dart';
+import 'package:simple_detection_app/bottomPage/gallery/galleryPage.dart';
+import 'package:simple_detection_app/bottomPage/camera/cameraPage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -44,13 +44,13 @@ class _HomePageState extends State<HomePage> {
           },
           children: <Widget>[
             new Center(
-              child: Home(),
+              child: MainPage(),
             ),
             new Center(
-              child: Camera(),
+              child: CameraPage(),
             ),
             new Center(
-              child: Gallery(),
+              child: GalleryPage(),
             ),
           ],
         ),
@@ -61,13 +61,13 @@ class _HomePageState extends State<HomePage> {
           currentIndex: _bottomTabIndex,
           onTap: (int index) {
             setState(() => this._bottomTabIndex = index);
-            this._pageController?.animateToPage(index,duration: const Duration(milliseconds: 500),curve: Curves.easeInOut);
+            this._pageController?.animateToPage(index, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
           },
           items: <BottomNavigationBarItem>[
             new BottomNavigationBarItem(icon: Icon(Icons.home, color: Color(0xffeeeeee)), title: Text('홈', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))),
             new BottomNavigationBarItem(icon: Icon(Icons.camera, color: Color(0xffeeeeee)), title: Text('카메라', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))),
             new BottomNavigationBarItem(icon: Icon(Icons.image, color: Color(0xffeeeeee)), title: Text('갤러리', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))),
-          ],)
+          ])
     );
   }
 }

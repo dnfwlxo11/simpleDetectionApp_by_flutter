@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_detection_app/utils/splashPage.dart';
+import 'package:simple_detection_app/routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -12,7 +13,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: SplashPage(),
+      initialRoute: '/',
+      routes: routes,
     );
   }
 }

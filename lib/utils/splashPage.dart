@@ -18,12 +18,8 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
     splashLogo = Image.asset('assets/splashCharacter.jpg');
     Timer(
-        Duration(milliseconds: 4000),
-            () => Navigator.push(context,
-            MaterialPageRoute(
-              builder: (context) => HomePage(),
-            ),
-        ),
+        Duration(milliseconds: 2000),
+            () => Navigator.pushNamed(context, '/menu'),
     );
   }
   

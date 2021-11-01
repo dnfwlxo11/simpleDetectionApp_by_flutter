@@ -1,17 +1,15 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_detection_app/utils/toast.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
 
   @override
-  _HomeState createState() => _HomeState();
+  _MainState createState() => _MainState();
 }
 
-class _HomeState extends State<Home> {
+class _MainState extends State<MainPage> {
   var test = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
   Image? mainImage;
   bool isImage = false;
@@ -41,60 +39,63 @@ class _HomeState extends State<Home> {
     ];
 
     return List.generate(5, (index) {
-      return Container(
-        child: Card(
-            child: Stack(
-              children: [
-                Container(
-                  height: 150,
-                  width: 200,
-                  child: Image.asset(
-                      'assets/exercise${index+1}.jpg',
-                      fit: BoxFit.fill
+      return InkWell(
+        onTap: () => Navigator.pushNamed(context, '/content'),
+        child: Container(
+          child: Card(
+              child: Stack(
+                children: [
+                  Container(
+                    height: 150,
+                    width: 200,
+                    child: Image.asset(
+                        'assets/exercise${index+1}.jpg',
+                        fit: BoxFit.fill
+                    ),
                   ),
-                ),
-                Container(
-                    padding: EdgeInsets.only(left: 15, top: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ment[index][0],
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.black87
+                  Container(
+                      padding: EdgeInsets.only(left: 15, top: 5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ment[index][0],
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.black87
+                            ),
                           ),
-                        ),
-                        Text(
-                          ment[index][1],
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: Colors.black54
+                          Text(
+                            ment[index][1],
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                                color: Colors.black54
+                            ),
                           ),
-                        ),
-                      ],
-                    )
-                ),
-                Container(
-                  height: 150,
-                  width: 200,
-                  decoration: BoxDecoration(
-                      color: Color(0xFF0E3311).withOpacity(0.3),
-                      gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black,
-                            Colors.white,
-                            Colors.white,
-                          ]
+                        ],
                       )
                   ),
-                ),
-              ],
-            )
+                  Container(
+                    height: 150,
+                    width: 200,
+                    decoration: BoxDecoration(
+                        color: Color(0xFF0E3311).withOpacity(0.3),
+                        gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black,
+                              Colors.white,
+                              Colors.white,
+                            ]
+                        )
+                    ),
+                  ),
+                ],
+              )
+          ),
         ),
       );
     });
@@ -156,8 +157,8 @@ class _HomeState extends State<Home> {
       body: Container(
         color: Colors.white,
         child: Center(
-          child: Container(
-            alignment: Alignment.topCenter,
+          child: SingleChildScrollView(
+            // alignment: Alignment.topCenter,
             // padding: EdgeInsets.only(left: 15, right: 15),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -176,7 +177,7 @@ class _HomeState extends State<Home> {
                     scrollDirection: Axis.horizontal,
                     children: someItems(),
                   ),
-                ),
+                )
               ],
             ),
           ),

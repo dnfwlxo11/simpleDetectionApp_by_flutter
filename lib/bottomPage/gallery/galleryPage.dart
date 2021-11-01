@@ -8,14 +8,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:simple_detection_app/bottomPage/gallery/detail/detectDetail.dart';
 
 
-class Gallery extends StatefulWidget {
-  const Gallery({Key? key}) : super(key: key);
+class GalleryPage extends StatefulWidget {
+  const GalleryPage({Key? key}) : super(key: key);
 
   @override
-  _GalleryState createState() => _GalleryState();
+  _GalleryPageState createState() => _GalleryPageState();
 }
 
-class _GalleryState extends State<Gallery> {
+class _GalleryPageState extends State<GalleryPage> {
   List imgList = [];
   bool isLoading = false;
 
