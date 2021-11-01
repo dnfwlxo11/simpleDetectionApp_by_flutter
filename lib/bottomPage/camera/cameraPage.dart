@@ -14,6 +14,8 @@ import 'package:simple_detection_app/bottomPage/camera/detail/cameraDetail.dart'
 
 import 'dart:async';
 
+import 'package:simple_detection_app/utils/toast.dart';
+
 
 class CameraPage extends StatefulWidget {
   const CameraPage({Key? key,}) : super(key: key);
@@ -125,6 +127,24 @@ class _CameraPageState extends State<CameraPage> {
               ],
             ),
           ),
+          Container(
+            padding: EdgeInsets.only(top: 5, right: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                FlatButton(
+                  color: Color(0xff5293c9),
+                  onPressed: () => showToast('아직 지원하지 않습니다.'),
+                  child: Text(
+                      '내 사진 가져오기',
+                      style: TextStyle(
+                        color: Color(0xffeeeeee)
+                      )
+                  ),
+                )
+              ],
+            ),
+          )
         ],
       ),
     );

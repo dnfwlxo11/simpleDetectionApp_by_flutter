@@ -106,10 +106,71 @@ class _MainState extends State<MainPage> {
   }
 
   void addUser() {
-    setState(() => registered = !registered);
+    setState(() => registered = true);
     showToast('서비스가 오픈되지 않았습니다.');
   }
 
+  void editProfile() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: new Text("프로필 정보 수정"),
+            content: new Text("프로필 정보들"),
+            actions: <Widget>[
+              new FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: new Text("Close"),
+              ),
+            ],
+          );
+        }
+    );
+  }
+
+  void editProfileImage() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: new Text("프로필 사진 변경"),
+            content: Container(
+              child: Row(
+                children: [
+                  FlatButton(
+                    color: Color(0xff5293c9),
+                    onPressed: () => {
+                      showToast('변경완료'),
+                      Navigator.pop(context),
+                    },
+                    child: Text('캐릭터')
+                  ),
+                  Spacer(),
+                  FlatButton(
+                    color: Color(0xff5293c9),
+                    onPressed: () => {
+                      showToast('아직 지원하지 않습니다.'),
+                      Navigator.pop(context),
+                    },
+                    child: Text('내 사진')
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              new FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: new Text("Close"),
+              ),
+            ],
+          );
+        }
+    );
+  }
 
   Widget profileText(String str) {
     return Container(
@@ -126,42 +187,64 @@ class _MainState extends State<MainPage> {
 
   Widget profileCard() {
     return Container(
-      child: Card(
-        color: Color(0xfffdf9f6),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 5,
-                  child: Container(
-                    height: 300,
-                    child: Image(
-                        image: profile!.image,
-                        fit: BoxFit.fitHeight
-                    ),
+        child: Card(
+          color: Color(0xfffdf9f6),
+          child: Column(
+            children: [
+              Stack(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: InkWell(
+                          onTap: () => editProfileImage(),
+                          child: Container(
+                            height: 300,
+                            child: Image(
+                                image: profile!.image,
+                                fit: BoxFit.fitHeight
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 5,
+                        child: InkWell(
+                          onTap: () => editProfile(),
+                          child: Container(
+                            padding: EdgeInsets.only(left: 30),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                profileText('키 : 180cm'),
+                                profileText('몸무게 : 75kg'),
+                                profileText('체지방 : 10%'),
+                                profileText('근골격량 : 30%'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                Expanded(
-                  flex: 5,
-                  child: Container(
-                    padding: EdgeInsets.only(left: 30),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        profileText('키 : 180cm'),
-                        profileText('몸무게 : 75kg'),
-                        profileText('체지방 : 10%'),
-                        profileText('근골격량 : 30%'),
-                      ],
-                    ),
+                  Container(
+                      padding: EdgeInsets.only(top: 10, right: 10),
+                      alignment: Alignment.topRight,
+                      child: InkWell(
+                        onTap: () => setState(() => registered = false),
+                        child: Icon(
+                          Icons.refresh,
+                          color: Colors.grey,
+                          size: 30,
+                        ),
+                      )
                   ),
-                ),
-              ],
-            )
-          ],
-        ),
-      )
+                ],
+              ),
+            ],
+          ),
+        )
     );
   }
 
