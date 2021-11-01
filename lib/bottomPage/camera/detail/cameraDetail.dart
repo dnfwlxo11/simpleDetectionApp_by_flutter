@@ -49,7 +49,7 @@ class _CameraDetailState extends State<CameraDetail> {
         db: 'detections'
     );
 
-    setState(() async => conn = await MySqlConnection.connect(mysqlSetting));
+    conn = await MySqlConnection.connect(mysqlSetting);
   }
 
   @override
@@ -70,8 +70,8 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void getLabelMap() async {
-    // var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap.json'));
-    var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap2.json'));
+    var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap.json'));
+    // var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap2.json'));
     setState(() => labelMap = tmp);
   }
 
@@ -118,12 +118,12 @@ class _CameraDetailState extends State<CameraDetail> {
     setState(() => isDetect = false);
     setState(() => boxData = []);
 
-    // String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
-    String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
+    String url = 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
+    // String url = 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 
-    yolo.setTargetImage(_image);
-    var data = await yolo.getImageBytes();
-    var body = yolo.getRequestBody(data);
+    efficient.setTargetImage(_image);
+    var data = await efficient.getImageBytes();
+    var body = efficient.getRequestBody(data);
 
     var response = await http.post(
         Uri.parse(url),
@@ -132,7 +132,7 @@ class _CameraDetailState extends State<CameraDetail> {
 
     var predict = jsonDecode(response.body)['outputs'][0]['data'];
 
-    setState(() => boxData = yolo.convertOutput(predict));
+    setState(() => boxData = efficient.convertOutput(predict));
 
     setState(() => isDetect = true);
     setState(() => isComplete = true);

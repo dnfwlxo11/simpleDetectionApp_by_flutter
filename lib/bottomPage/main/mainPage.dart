@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_detection_app/utils/toast.dart';
@@ -16,6 +18,20 @@ class _MainState extends State<MainPage> {
   bool isImage = false;
   bool registered = false;
 
+  var profileInfo = {
+    'height': '180',
+    'weight': '75',
+    'bodyFat': '10',
+    'muscle': '30',
+  };
+
+  var profileControllers = {
+    'height': TextEditingController(text: '180'),
+    'weight': TextEditingController(),
+    'bodyFat': TextEditingController(),
+    'muscle': TextEditingController(),
+  };
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +41,7 @@ class _MainState extends State<MainPage> {
       isImage = true;
     });
   }
+
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
@@ -44,7 +61,11 @@ class _MainState extends State<MainPage> {
 
     return List.generate(5, (index) {
       return InkWell(
-        onTap: () => Navigator.pushNamed(context, '/content'),
+        onTap: () => Navigator.pushNamed(
+          context,
+          '/content',
+          arguments: 'assets/exercise${index + 1}.jpg',
+        ),
         child: Container(
           child: Card(
               child: Stack(
@@ -110,20 +131,75 @@ class _MainState extends State<MainPage> {
     showToast('서비스가 오픈되지 않았습니다.');
   }
 
+  void saveProfile() {
+  }
+
+  Widget profileInput() {
+    return SingleChildScrollView(
+      child: Form(
+        child: Column(
+          children: [
+            TextFormField(
+              initialValue: profileInfo['height'],
+              decoration: InputDecoration(labelText: '키 (cm)'),
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.number,
+            ),
+            TextFormField(
+              initialValue: profileInfo['weight'],
+              decoration: InputDecoration(labelText: '몸무게 (kg)'),
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.number,
+            ),
+            TextFormField(
+              initialValue: profileInfo['bodyFat'],
+              decoration: InputDecoration(labelText: '체지방량 (%)'),
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.number,
+            ),
+            TextFormField(
+              initialValue: profileInfo['muscle'],
+              decoration: InputDecoration(labelText: '골격근량 (%)'),
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void editProfile() {
     showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: new Text("프로필 정보 수정"),
-            content: new Text("프로필 정보들"),
-            actions: <Widget>[
-              new FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: new Text("Close"),
+            title: Text(
+              "프로필 정보 수정",
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20
               ),
+            ),
+            content: profileInput(),
+            actions: <Widget>[
+              Container(
+                alignment: Alignment.bottomRight,
+                child: Row(
+                  children: [
+                    FlatButton(
+                      onPressed: () => saveProfile(),
+                      child: Text("Submit"),
+                    ),
+                    FlatButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text("Close"),
+                    ),
+                  ],
+                ),
+              )
             ],
           );
         }
@@ -140,21 +216,21 @@ class _MainState extends State<MainPage> {
               child: Row(
                 children: [
                   FlatButton(
-                    color: Color(0xff5293c9),
-                    onPressed: () => {
-                      showToast('변경완료'),
-                      Navigator.pop(context),
-                    },
-                    child: Text('캐릭터')
+                      color: Color(0xff5293c9),
+                      onPressed: () => {
+                        showToast('변경완료'),
+                        Navigator.pop(context),
+                      },
+                      child: Text('캐릭터')
                   ),
                   Spacer(),
                   FlatButton(
-                    color: Color(0xff5293c9),
-                    onPressed: () => {
-                      showToast('아직 지원하지 않습니다.'),
-                      Navigator.pop(context),
-                    },
-                    child: Text('내 사진')
+                      color: Color(0xff5293c9),
+                      onPressed: () => {
+                        showToast('아직 지원하지 않습니다.'),
+                        Navigator.pop(context),
+                      },
+                      child: Text('내 사진')
                   ),
                 ],
               ),
@@ -215,12 +291,13 @@ class _MainState extends State<MainPage> {
                           child: Container(
                             padding: EdgeInsets.only(left: 30),
                             child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 profileText('키 : 180cm'),
                                 profileText('몸무게 : 75kg'),
                                 profileText('체지방 : 10%'),
-                                profileText('근골격량 : 30%'),
+                                profileText('골격근량 : 30%'),
                               ],
                             ),
                           ),

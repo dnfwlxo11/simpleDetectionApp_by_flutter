@@ -1,15 +1,14 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:gallery_saver/gallery_saver.dart';
 import 'package:simple_detection_app/bottomPage/camera/detail/cameraDetail.dart';
 
 import 'dart:async';
@@ -66,8 +65,39 @@ class _CameraPageState extends State<CameraPage> {
     super.dispose();
   }
 
+  Future<String> takePicture() async {
+    await _initializeControllerFuture;
+
+    final path = join(
+        (await getExternalStorageDirectory())!.path,
+        'MyApp'
+    );
+
+    await Directory(path).create();
+    String currTime = await DateFormat('yyyyMMddhhmm_ss').format(DateTime.now());
+
+    XFile picture = await _controller!.takePicture();
+    await picture.saveTo(join(path, '${currTime}Detect.png'));
+
+    String imagePath = await '$path/${currTime}Detect.png';
+
+    return imagePath;
+  }
+
   @override
   Widget build(BuildContext context) {
+    void loadImageByGallery() async {
+      PickedFile? image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CameraDetail(imagePath: image.path),
+          ),
+        );
+      }
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset : false,
       body: Stack(
@@ -96,49 +126,41 @@ class _CameraPageState extends State<CameraPage> {
                 Container(
                   padding: EdgeInsets.only(bottom: 20),
                   child: FloatingActionButton(
-                    backgroundColor: Color(0xff5293c9),
-                    child: Icon(Icons.camera_alt, color: Color(0xffeeeeee)),
-                    onPressed: () async {
-                      try {
-                        await _initializeControllerFuture;
+                      backgroundColor: Color(0xff5293c9),
+                      child: Icon(Icons.camera_alt, color: Color(0xffeeeeee)),
+                      onPressed: () async {
+                        String imagePath = await takePicture();
 
-                        final path = join(
-                            (await getExternalStorageDirectory())!.path,
-                            'MyApp'
+                        print(imagePath);
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CameraDetail(imagePath: imagePath),
+                          ),
                         );
-
-                        await Directory(path).create();
-                        String currTime = DateFormat('yyyyMMddhhmm_ss').format(DateTime.now());
-
-                        XFile picture = await _controller!.takePicture();
-                        picture.saveTo(join(path, '${currTime}Detect.png'));
-
-                        // await GallerySaver.saveImage(path, albumName: 'MyApp');
-
-                        String imagePath = '$path/${currTime}Detect.png';
-
-                        Navigator.pushNamed(context, '/camera');
-                      } catch (e) {
-                        print(e);
+                        // Navigator.pushNamed(context, '/camera');
                       }
-                    },
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: EdgeInsets.only(top: 5, right: 10),
+            padding: EdgeInsets.only(bottom: 20, right: 10),
+            alignment: Alignment.bottomRight,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 FlatButton(
                   color: Color(0xff5293c9),
-                  onPressed: () => showToast('아직 지원하지 않습니다.'),
+                  onPressed: () => loadImageByGallery(),
                   child: Text(
                       '내 사진 가져오기',
                       style: TextStyle(
-                        color: Color(0xffeeeeee)
+                          color: Color(0xffeeeeee),
+                          fontWeight: FontWeight.bold
                       )
                   ),
                 )
