@@ -15,6 +15,17 @@ class _MainState extends State<MainPage> {
   var test = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
   Image? mainImage;
   Image? profile;
+  List<Image>? imgList = [
+    Image.asset('assets/yoga1.jpg'),
+    Image.asset('assets/yoga2.jpg'),
+    Image.asset('assets/yoga3.jpg'),
+    Image.asset('assets/yoga4.jpg'),
+    Image.asset('assets/yoga5.jpg'),
+    Image.asset('assets/yoga6.jpg'),
+    Image.asset('assets/yoga7.jpg'),
+    Image.asset('assets/yoga8.jpg'),
+    Image.asset('assets/yoga9.jpg'),
+  ];
   bool isImage = false;
   bool registered = false;
 
@@ -37,6 +48,7 @@ class _MainState extends State<MainPage> {
     super.initState();
     mainImage = Image.asset('assets/mainCard.jpg');
     profile = Image.asset('assets/manWinter.jpg');
+
     setState(() {
       isImage = true;
     });
@@ -396,6 +408,39 @@ class _MainState extends State<MainPage> {
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   children: someItems(),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.only(top: 40, bottom: 15),
+                child: Text(
+                    '요가 특집',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold
+                    ),
+                ),
+              ),
+              SizedBox(
+                height: 400,
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: imgList!.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 5,
+                    mainAxisSpacing: 5,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                      return InkWell(
+                        child: Card(
+                          semanticContainer: true,
+                          clipBehavior: Clip.antiAliasWithSaveLayer,
+                          color: Color(0xff5293c9),
+                          child: Image(image: imgList![index].image, fit: BoxFit.fill),
+                        ),
+                        onTap: () => showToast('내용 무'),
+                    );
+                  },
                 ),
               )
             ],

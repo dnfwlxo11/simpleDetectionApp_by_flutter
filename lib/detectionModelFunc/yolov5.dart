@@ -127,8 +127,6 @@ List iouUnit(List arr) {
   List drawIndex = [];
   List<int> deleteIndex = [];
 
-  print(arr.length);
-
   for (var i=0;i<arr.length;i++) {
     if (deleteIndex.indexOf(i) != -1) continue;
 

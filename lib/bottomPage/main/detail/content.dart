@@ -36,8 +36,6 @@ class _ContentState extends State<Content> {
   Widget build(BuildContext context) {
     final Object? args = ModalRoute.of(context)!.settings.arguments;
 
-    print(args.toString());
-
     return Scaffold(
         appBar: AppBar(
           title: Text('컨텐츠'),
@@ -56,7 +54,7 @@ class _ContentState extends State<Content> {
                 ),
                 Container(
                   alignment: Alignment.topLeft,
-                  padding: EdgeInsets.only(left: 20, right: 20, bottom: 10),
+                  padding: EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 20),
                   child: Text(
                     '청산별곡',
                     style: TextStyle(

@@ -131,8 +131,6 @@ class _CameraPageState extends State<CameraPage> {
                       onPressed: () async {
                         String imagePath = await takePicture();
 
-                        print(imagePath);
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(

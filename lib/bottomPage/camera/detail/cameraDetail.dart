@@ -133,7 +133,6 @@ class _CameraDetailState extends State<CameraDetail> {
     var predict = jsonDecode(response.body)['outputs'][0]['data'];
 
     setState(() => boxData = efficient.convertOutput(predict));
-
     setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
