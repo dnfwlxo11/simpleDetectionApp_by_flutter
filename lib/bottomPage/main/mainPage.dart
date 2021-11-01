@@ -12,12 +12,15 @@ class MainPage extends StatefulWidget {
 class _MainState extends State<MainPage> {
   var test = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'];
   Image? mainImage;
+  Image? profile;
   bool isImage = false;
+  bool registered = false;
 
   @override
   void initState() {
     super.initState();
     mainImage = Image.asset('assets/mainCard.jpg');
+    profile = Image.asset('assets/manWinter.jpg');
     setState(() {
       isImage = true;
     });
@@ -27,6 +30,7 @@ class _MainState extends State<MainPage> {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
     precacheImage(mainImage!.image, context);
+    precacheImage(profile!.image, context);
   }
 
   List<Widget> someItems() {
@@ -102,7 +106,63 @@ class _MainState extends State<MainPage> {
   }
 
   void addUser() {
+    setState(() => registered = !registered);
     showToast('서비스가 오픈되지 않았습니다.');
+  }
+
+
+  Widget profileText(String str) {
+    return Container(
+      padding: EdgeInsets.only(top: 10, bottom: 10),
+      child: Text(
+        str,
+        style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold
+        ),
+      ),
+    );
+  }
+
+  Widget profileCard() {
+    return Container(
+      child: Card(
+        color: Color(0xfffdf9f6),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    height: 300,
+                    child: Image(
+                        image: profile!.image,
+                        fit: BoxFit.fitHeight
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    padding: EdgeInsets.only(left: 30),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        profileText('키 : 180cm'),
+                        profileText('몸무게 : 75kg'),
+                        profileText('체지방 : 10%'),
+                        profileText('근골격량 : 30%'),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      )
+    );
   }
 
   Widget mainCard() {
@@ -156,30 +216,29 @@ class _MainState extends State<MainPage> {
       ),
       body: Container(
         color: Colors.white,
-        child: Center(
-          child: SingleChildScrollView(
-            // alignment: Alignment.topCenter,
-            // padding: EdgeInsets.only(left: 15, right: 15),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  child: InkWell(
-                    onTap: () => addUser(),
-                    child: mainCard(),
-                  ),
+        alignment: Alignment.topCenter,
+        child: SingleChildScrollView(
+          // alignment: Alignment.topCenter,
+          padding: EdgeInsets.only(left: 5, right: 5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                child: InkWell(
+                  onTap: () => addUser(),
+                  child: registered ? profileCard() : mainCard(),
                 ),
-                SizedBox(
-                  height: 150,
-                  child: ListView(
-                    physics: ClampingScrollPhysics(),
-                    shrinkWrap: true,
-                    scrollDirection: Axis.horizontal,
-                    children: someItems(),
-                  ),
-                )
-              ],
-            ),
+              ),
+              SizedBox(
+                height: 150,
+                child: ListView(
+                  physics: ClampingScrollPhysics(),
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  children: someItems(),
+                ),
+              )
+            ],
           ),
         ),
       ),
