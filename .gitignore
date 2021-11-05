@@ -1,3 +1,6 @@
+# db config file
+config.dart
+
 # Miscellaneous
 *.class
 *.log

@@ -153,13 +153,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.2"
-  flutter_lints:
-    dependency: "direct dev"
-    description:
-      name: flutter_lints
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.4"
   flutter_plugin_android_lifecycle:
     dependency: transitive
     description:
@@ -254,13 +247,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.3"
-  lints:
-    dependency: transitive
-    description:
-      name: lints
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.1"
   logging:
     dependency: transitive
     description:
@@ -476,6 +462,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.2"
+  tflite_flutter:
+    dependency: "direct main"
+    description:
+      name: tflite_flutter
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.0"
   typed_data:
     dependency: transitive
     description:
