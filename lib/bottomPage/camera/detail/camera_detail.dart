@@ -59,8 +59,8 @@ class _CameraDetailState extends State<CameraDetail> {
   }
 
   void getLabelMap() async {
-    var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap.json'));
-    // var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap2.json'));
+    // var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap.json'));
+    var tmp = jsonDecode(await rootBundle.loadString('assets/labelMap2.json'));
     setState(() => labelMap = tmp);
   }
 
@@ -109,15 +109,15 @@ class _CameraDetailState extends State<CameraDetail> {
 
     // 일반 모델
     // example) http://localhost:8080/inference
-    String url = DB.getEfficientURL();
+    // String url = DB.getEfficientURL();
 
     // ezfit 모델
-    // String url = DB.getYoloURL();
+    String url = DB.getYoloURL();
 
     // ezfit 모델을 사용하려면 efficient 단어를 모두 yolo로 변경하면됨
-    efficient.setTargetImage(_image);
-    var data = await efficient.getImageBytes();
-    var body = efficient.getRequestBody(data);
+    yolo.setTargetImage(_image);
+    var data = await yolo.getImageBytes();
+    var body = yolo.getRequestBody(data);
 
     var response = await http.post(
         Uri.parse(url),
@@ -126,7 +126,7 @@ class _CameraDetailState extends State<CameraDetail> {
 
     var predict = jsonDecode(response.body)['outputs'][0]['data'];
 
-    setState(() => boxData = efficient.convertOutput(predict));
+    setState(() => boxData = yolo.convertOutput(predict));
     setState(() => isDetect = true);
     setState(() => isComplete = true);
   }
@@ -230,7 +230,7 @@ class _CameraDetailState extends State<CameraDetail> {
                       child: Text('저장하기', style: TextStyle(color: Color(0xffeeeeee), fontWeight: FontWeight.bold))
                   ) : RaisedButton(
                       color: Color(0xff5293c9),
-                      onPressed: detectAction_inner,
+                      onPressed: detectAction_server,
                       child: Text('디텍팅하기', style: TextStyle(color:  Color(0xffeeeeee), fontWeight: FontWeight.bold))
                   ),
                 ],

@@ -1,10 +1,5 @@
 import 'package:mysql1/mysql1.dart';
 
-/*
- * sample code
- * Fill in your settings!!!
- */
-
 class Database {
   MySqlConnection? conn;
 
@@ -12,27 +7,38 @@ class Database {
   static final Database instance = Database._privateConstructor();
 
   var mysqlSetting = ConnectionSettings(
-      host: 'user url',
-      port: {{user port (int type)}},
-      user: 'user db id',
-      password: 'user db pass',
-      db: 'user db name'
+      host: 'namuintell.iptime.org',
+      port: 16003,
+      user: 'root',
+      password: 'root',
+      db: 'detections'
   );
 
   Future<void> connection() async {
     this.conn = await MySqlConnection.connect(mysqlSetting);
   }
 
-  // example
-  dynamic selectData(dataId) async {
+  dynamic selectImagePosition(path) async {
     await this.connection();
-    var result = await this.conn!.query('SELECT * FROM data where dataId = ?', ['${dataId}']);
+    var result = await this.conn!.query('SELECT position FROM images where img_path = ?', ['${path}']);
     await this.conn != null ? this.conn!.close() : this.conn = null;
 
-    return result;
+    return result.toList();
+  }
+
+  dynamic insertImages(path, data) async {
+    await this.connection();
+    var results = await this.conn!.query('INSERT INTO images (img_path, position) VALUES (?, ?)', ['${path}', '${data}']);
+    await this.conn != null ? this.conn!.close() : this.conn = null;
+
+    return results;
   }
 }
 
-String getURL() {
-  return 'http://{{user url}}/{{api}}';
+String getEfficientURL() {
+  return 'http://namuintell.iptime.org:16000/v2/models/detectionModel/versions/1/infer';
+}
+
+String getYoloURL() {
+  return 'http://namuintell.iptime.org:16000/v2/models/ezfit/versions/1/infer';
 }
